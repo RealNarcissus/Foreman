@@ -84,9 +84,11 @@ Acceptance criteria per task: a hidden oracle that fails on the seeded state and
 
 ### 3.6 G2 pre-check
 
-Before freeze, run the procedure in [03-subject-repo.md](03-subject-repo.md) §6: CodeQL baseline on unmodified `8.5.0`, then five planted security defects.
+Run the procedure in [04-g2-precheck.md](04-g2-precheck.md) §4: GitHub default code scanning on a public fork of `8.5.0`, then five planted defects.
 
-**If fewer than 2 of 5 planted defects produce a security-rule alert, G2 is dropped.** The pre-check table is released either way. A rung that cannot fire is not a treatment, and reporting its yield as a measurement would be dishonest.
+**Precondition:** a positive control must fire. If a canonical `os.system("echo " + sys.argv[1])` sample produces no alert, the configuration is unvalidated and nothing downstream counts. A local CLI run already failed this test; see [04](04-g2-precheck.md) §3.
+
+**Then:** if fewer than 2 of 5 planted defects produce a security-rule alert, G2 is dropped and the ladder is four rungs. The full table is released either way. A rung that cannot fire is not a treatment.
 
 ---
 
@@ -237,9 +239,11 @@ Preregistration tag, deviation log, harness, task generators and manifests, hidd
 
 ## 12. Open items before freeze
 
-- [ ] G2 pre-check run; rung count decided (5 or 4)
+- [ ] G2 pre-check run in GitHub's default configuration, with a positive control that fires; rung count decided (5 or 4)
+- [ ] Worker model chosen by the smoke test on holdout tasks, inside the allowance ([05](05-run-configuration.md))
+- [ ] Reviewer prompt, model and blocking threshold committed and hashed ([05](05-run-configuration.md) §1)
 - [ ] 12 tasks authored, each within the 45-minute budget, each passing the oracle self-test
 - [ ] §7 rubric committed
-- [ ] Pilot budget cap recorded (tokens plus CI minutes)
+- [ ] Pilot budget cap recorded (plan level plus CI minutes)
 - [ ] Lit-check outcome incorporated (§2 may need revision)
 - [ ] Venue and deadline identified, or explicitly deferred
