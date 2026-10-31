@@ -65,6 +65,7 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
     outside = leak.outside_access(log_path.read_text()) if log_path.exists() else []
     tamper, tamper_evidence = leak.tampered(diff)
     gate_results = gates.run(rung, worktree)
+    infra = bool(action.get("infra_error"))
     contaminated = bool(outside)
     gate_green = all(g["ok"] for g in gate_results) and not leaked and not tamper
     accepted = bool(gate_green and rung["auto_merge"])
@@ -82,7 +83,7 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
         "gate_green": gate_green, "accepted": accepted,
         "oracle_passed": scored["passed"], "completion": completion,
         "gate_escape": gate_escape, "tamper": tamper,
-        "oracle_leaked": leaked, "outside_access": outside,
+        "oracle_leaked": leaked, "outside_access": outside, "infra_error": action.get("infra_error"),
         "valid": valid, "seconds": seconds,
         "gates": gate_results,
     }

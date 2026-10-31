@@ -51,6 +51,7 @@ class OpenCode(Worker):
         duration = round(time.time() - t0, 1)
 
         session, texts, cost, tokens = None, [], 0.0, {"input": 0, "output": 0}
+        infra_error = None
         for line in (out or "").splitlines():
             line = line.strip()
             if not line.startswith("{"):
@@ -61,6 +62,8 @@ class OpenCode(Worker):
                 continue
             session = session or ev.get("sessionID")
             part = ev.get("part", {})
+            if ev.get("type") == "error":
+                infra_error = (ev.get("error") or {}).get("type") or "error"
             if ev.get("type") == "text":
                 texts.append(part.get("text", ""))
             if part.get("type") == "step-finish":
@@ -76,5 +79,6 @@ class OpenCode(Worker):
             f"--- stdout ---\n{out}\n\n--- stderr ---\n{err}\n")
         return {"action": "agent_ran", "model": self.model, "returncode": rc,
                 "cost_usd": round(cost, 6), "tokens": tokens,
+                "infra_error": infra_error,
                 "timed_out": timed_out, "duration_s": duration,
                 "session": session, "said": " ".join(texts)[-400:]}

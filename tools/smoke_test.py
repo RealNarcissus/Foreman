@@ -38,6 +38,7 @@ for model in MODELS:
                     "cost_usd": r["action"].get("cost_usd"),
                     "tokens": r["action"].get("tokens"),
                     "timed_out": r["action"].get("timed_out"),
+                    "infra_error": r["action"].get("infra_error"),
                 })
             except Exception as exc:
                 rows.append({"model": model, "task": tid, "attempt": attempt,
