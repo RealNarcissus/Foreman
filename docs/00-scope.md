@@ -218,8 +218,8 @@ If a capstone rubric must be satisfied, the ladder exercises the GitHub Foundati
 | # | Decision | Needed by |
 | --- | --- | --- |
 | 1 | Subject repository — recommended `pallets/click` @ `8.5.0` (commit `8b19813`), see [03-subject-repo.md](03-subject-repo.md). Conditional on decision 5 | M0 |
-| 2 | CLI agent and pinned model version | M1 |
-| 3 | Which vendor AI reviewer occupies G3 (needed for the pilot, not just the main sweep) | M0 |
+| 2 | Worker: `opencode` headless, DeepSeek V4.1 Flash, `omp` as the alternative client — settled in [05-run-configuration.md](05-run-configuration.md) | M0 |
+| 3 | G3 reviewer: Claude Haiku 5.5 with a pinned prompt and severity threshold, per [05-run-configuration.md](05-run-configuration.md) | M0 |
 | 4 | Public hosting for the subject fork — CodeQL is free on public repos, not private | M0 |
 | 5 | Whether G2 survives its pre-check, or the ladder is four rungs | M0 |
 

@@ -1,117 +1,136 @@
-# Run configuration: the two agents in the design
+# Run configuration: worker, reviewer, and the Go plan
 
-Fixes open parameters 2 and 3 of the [preregistration](02-preregistration.md). Two separate "agents" exist in this study and they are easy to confuse:
+Fixes open parameters 2 and 3 of the [preregistration](02-preregistration.md). Two separate agents exist here and they are easy to confuse:
 
 | Role | What it is | Pinned? |
 | --- | --- | --- |
 | **Worker** | The coding agent that turns a task into a diff. Runs at every rung | Yes |
 | **Reviewer** | The G3 gate that comments on or blocks the diff | Yes |
 
+Decided: `opencode` as the worker client, `omp` (Oh My Pi) as the validated alternative, DeepSeek V4.1 Flash as the primary worker model, and the **Go plan ($10/month)** as the budget envelope.
+
 ---
 
-## 1. What G3 means (the clarification)
+## 1. What G3 means
 
-**G3 is the review platform and its policy, not the model.** A "vendor AI reviewer" in the original design meant a product such as Copilot code review, CodeRabbit or Greptile: a system that owns the prompt, the diff curation, the severity heuristics and the blocking decision. The model underneath is an implementation detail, and it is usually not pinnable.
+**G3 is the review platform and its policy, not the model.** A "vendor AI reviewer" in the original design meant a product such as Copilot code review, CodeRabbit or Greptile: a system that owns the prompt, the diff curation, the severity heuristics and the blocking decision. The model underneath is an implementation detail, and with a real vendor bot it is not pinnable.
 
-That distinction matters for the study rather than being pedantry. If G3 is an unpinnable product:
+That matters for the study rather than being pedantry. If G3 is unpinnable, the vendor can swap models mid-sweep and the change is invisible in the data; gate yield cannot be attributed, because prompt quality and model quality are confounded; and "the AI review gate raised round trips by 30%" becomes unfalsifiable.
 
-- the vendor can swap models mid-sweep, and the change is invisible in the data;
-- gate yield cannot be attributed, because prompt quality and model quality are confounded;
-- "the AI review gate raised round trips by 30%" becomes unfalsifiable, since nobody can say what the gate was.
-
-So the rung is defined by a **configuration record**: reviewer identity, prompt, blocking threshold, model id, and suite/severity policy. Two valid instantiations:
+So the rung is a **configuration record**: reviewer model id, prompt, blocking threshold, and alert-suite policy.
 
 | | Vendor bot | Scripted reviewer |
 | --- | --- | --- |
 | Realism | High; it is what teams deploy | Medium; a proxy for the class |
 | Pinning | Model changes underneath you | Full control; prompt is an artifact |
-| Cost | Subscription, quota risk, org settings | Marginal, on existing model access |
 | Attribution | Prompt and model confounded | Separable |
-| Availability here | Not assumed | Available via OpenCode Go |
+| Availability here | Not assumed | Available on existing model access |
 
-**Recommendation: scripted reviewer for the pilot.** The writeup must then say plainly that results characterise *an automated review gate of this configuration*, not commercial review bots, and that a low yield is a lower bound rather than an indictment of the category. A commercial bot, if one becomes available, is a second G3 variant in the main sweep, not a replacement.
+**Decision: scripted reviewer for the pilot.** The writeup must then say plainly that results characterise *an automated review gate of this configuration*, not commercial review bots, and that a low yield is a lower bound rather than an indictment of the category.
 
 ### Reviewer configuration to pin
 
-- Model id, and a different vendor from the worker so the two do not share blind spots.
-- The prompt, committed and hashed. This is the artifact that makes gate yield attributable.
-- Blocking rule, stated as a threshold: for example "block if any comment is tagged severity >= major". Without a threshold the rung has no defined behaviour.
-- Explicitly: the reviewer never sees the hidden oracle, and the prompt is written before the pilot, not tuned during it.
+- **Model: Claude Haiku 5.5** (`opencode-go/claude-haiku-5-5`), deliberately a different vendor from the DeepSeek worker so the two do not share blind spots. Candidate volume is one to three calls per run, roughly 200-500 total, against an allowance of ~19,000 requests a month. Cost is not a consideration here; independence is.
+- Alternative if Anthropic access is unavailable: GPT 6 Luna (`opencode-go/gpt-6-luna`).
+- The prompt, committed and hashed before the pilot. This is what makes gate yield attributable.
+- Blocking rule as an explicit threshold: block if any comment is tagged severity >= major.
+- The reviewer never sees the hidden oracle.
 
 ---
 
-## 2. The worker, and why model choice is a floor-effect risk
+## 2. Worker model
 
-The pilot is 180 runs. If each run is 25-60 model requests, that is roughly **4,500-10,800 requests**, which is the number that has to fit inside a monthly allowance.
+**Primary: DeepSeek V4.1 Flash** (`opencode-go/deepseek-v4.1-flash`).
+
+| Property | Value |
+| --- | --- |
+| Monthly limit on Go | $100 |
+| Estimated requests/month | ~216,000 |
+| Price off-peak | $0.15 in / $0.60 out / $0.003 cached read per 1M |
+| Price peak | double |
+| Training on data | Not used |
+| Retention | 0 days, under a ZDR agreement renewed monthly |
+
+It has the largest allowance on the plan by a wide margin, the best privacy profile of any high-capacity model, and the terms renew rather than lapse, so it is a defensible primary rather than a stopgap.
+
+**Two prerequisites**, both easy to miss:
+
+- **Workspace owner or admin must set Regions to `Global`** in Settings › Privacy. Without it the model is blocked, and the failure surfaces as a run error rather than a configuration error.
+- **Schedule off-peak.** Peak is 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday; everything else, including weekends, is off-peak at half price. This doubles the effective allowance and costs nothing but cron discipline.
+
+### Cost, estimated rather than assumed
+
+A 30-minute repository-level run plausibly consumes something like 50k new input, 20k output and 500k cached-read tokens. At off-peak prices that is roughly **$0.02 per run**, so 180 runs is **$4-8**, against a $100 allowance and a $20 per-five-hour window cap. Budget is therefore **not** the binding constraint on this plan; capability and calendar time are.
+
+That figure is an estimate with stated assumptions. The harness should not rely on it: every OpenCode Go response reports how much the request counted as `opencode.allowance`, so the runner records actual spend per run. RQ5's cost metric then becomes measured rather than modelled, which is a small but real improvement to the study.
+
+---
+
+## 3. Selecting the worker without flooring the study
 
 Two failure modes, and only one is obvious:
 
-- **Over budget.** Runs fail partway and the harness records infrastructure failures. Annoying, visible, fixable.
-- **Floor effect.** A model too weak to solve repository-level tasks completes almost nothing at every rung. Completion is then ~0 everywhere, differences between rungs are unmeasurable, and the pilot looks like a null result when it is really a capability failure. **This is the dangerous one**, because it produces a number that looks like a finding.
+- **Over budget.** Visible, fixable.
+- **Floor effect.** A model too weak for repository-level tasks completes almost nothing at every rung. Differences between rungs become unmeasurable, and the pilot produces a number that looks like a null result when it is really a capability failure. **This is the dangerous one.**
 
-So the worker model is chosen by a smoke test, not by reputation.
+The $10 plan keeps DeepSeek in budget but does not tell us it can solve click tasks. So the worker is chosen by measurement.
 
-### Smoke test (before authoring the 12 pilot tasks)
+### Smoke test, on holdout tasks only
 
-- **On holdout tasks only**, so the 12 pilot tasks stay unseen and the choice does not flatter the model on the tasks it is measured on.
-- 3 candidate models x 2 holdout tasks x 4 attempts at G0 = 24 runs.
-- Selection rule: take the model with the highest completion; require **at least 2 of 8** on the easiest holdout pair. If no candidate clears it, escalate the plan rather than proceeding.
-- Record the choice and disclose it as a limitation: selecting the worker on pilot-adjacent data is mildly optimistic, and using the holdout is the mitigation.
+- 2 holdout tasks x 4 attempts at G0, per candidate. **24 runs total.**
+- Candidates, chosen to span the capacity/capability tradeoff:
+  - DeepSeek V4.1 Flash — capacity and privacy, capability unproven
+  - Kimi K2.7 Code — plausibly the strongest coding model that still fits on Go at ~6,750 requests, which covers only ~85-170 agent runs at 40-80 requests each
+  - MiMo-V2.6-Flash — capacity, capability unproven
+- Holdout tasks only, so the 12 pilot tasks stay unseen and the choice does not flatter the model on the tasks it is measured against.
 
----
+### Selection rule, preregistered
 
-## 3. Allowance arithmetic (OpenCode Go)
+1. **Floor check.** A candidate must complete at least 2 of 8. Candidates below that are disqualified regardless of cost.
+2. **Fit check.** Estimate requests per run from the smoke test, then require `180 x requests_per_run` to fit inside the model's monthly capacity.
+3. **Order of preference.** Highest completion among candidates passing both. On a tie, the larger allowance wins.
+4. **If no candidate passes the floor**, do not proceed to the pilot. Either reduce task difficulty to tier 1 and 2 only, or accept a smaller N with the shortfall disclosed. Do not run the pilot on a floored model and report the result as a finding.
+5. **If the best-capability candidate fails the fit check**, reduce k from 3 to 2 (120 runs) rather than switching to a weaker model. Capability first, repetition second.
 
-Plans are monthly dollar allowances, and each model has its own limit and its own monthly request estimate. The 5-hour window is 20% of the monthly allowance, the week 50%. Practical consequence: **180 runs cannot be burst**; they have to be paced across a week or more. That is compatible with the preregistered requirement to interleave rungs rather than batch them, and it should be planned for rather than discovered.
-
-Approximate monthly request capacity by model, Go and Go Plus, from the published estimates:
-
-| Model | Go ($10) | Go Plus ($40) |
-| --- | --- | --- |
-| MiMo-V2.6-Flash | 150,400 | 300,800 |
-| LongCat-2.0 | 57,200 | 228,800 |
-| GLM-5.3-Flash | 31,580 | 94,740 |
-| Qwen3.8 Flash | 27,000 | 81,000 |
-| GPT 6 Luna | 21,130 | 84,520 |
-| Claude Haiku 5.5 | 19,230 | 76,920 |
-| MiniMax M3 | 16,000 | 48,000 |
-| Kimi K2.7 Code | 6,750 | 20,250 |
-| GLM-5.2 | 4,300 | 12,900 |
-| Kimi K3.1 Pro | 735 | 2,941 |
-
-The flash-tier models have the headroom but are the most likely to hit the floor effect. The coding-stronger mid-tier models only fit comfortably on Go Plus. **Budget one month of Go Plus for the pilot**: about $40 covers the worker runs, the reviewer calls, and the smoke test with margin, and it removes the constraint that would otherwise force a too-weak model.
-
-### Exclusions, for reproducibility rather than cost
-
-- **Exclude Muse Spark 1.2/1.3 Contributor and Iceman Contributor.** Their terms state that prompts and completions are used for training. Running the task suite through them would leak the suite into future training data, which is a contamination vector for replication, not a privacy preference.
-- **Do not pin a DeepSeek model as primary without confirming terms.** The published ZDR agreement is listed as valid through 31 October 2026, which is now. A lapse mid-sweep would break reproducibility.
-- Prefer models whose retention is 0 days and whose data is not used for training; record the terms in force at the start of the sweep.
+The chosen model and the smoke test table are released. Selecting the worker on holdout data is mildly optimistic and is disclosed as a limitation; using the holdout rather than pilot tasks is the mitigation.
 
 ---
 
-## 4. Configuration record
+## 4. Client
 
-Store one file per run under `runs/<run-id>/config.json`:
+**Primary: `opencode`, driven headless.** It is the native client, it sends the `x-opencode-session` header that the plan's routing and prompt caching depend on, and it is the configuration the vendor validates.
+
+**Alternative: `omp` (Oh My Pi).** Kept as the second driver so the harness is not wedded to one client: if `opencode` changes its headless interface, or a run's behaviour looks client-specific, omp is the cross-check. The harness should treat the client as a swappable adapter from the start, since the arity of the experiment is "rungs", not "clients".
+
+Whatever client runs, the version is pinned and recorded per run. A client upgrade mid-sweep is a deviation.
+
+---
+
+## 5. Configuration record
+
+One `config.json` per run under `runs/<run-id>/`:
 
 | Field | Note |
 | --- | --- |
 | Task id, tier, class | `logic` or `security` |
 | Rung | G0-G4 |
 | Worker | client name and version, `opencode-go/<model-id>` |
-| Reviewer | model id, prompt hash, blocking threshold, suite/severity policy |
+| Reviewer | model id, prompt hash, blocking threshold |
 | Subject | tag `8.5.0`, commit `8b19813` |
 | Image | digest, not tag |
 | Timing | dispatch, gate verdict, review session, merge |
 | Outcome | gate-green, independent completion, gate escape, adjudication |
+| **Spend** | `opencode.allowance` per request, summed per run |
+| Peak or off-peak | Determines the price actually applied |
 
-Every field here is something a reader would need to reproduce the run. Anything not in this file did not happen.
+Anything not in this file did not happen.
 
 ---
 
-## 5. Open
+## 6. Open
 
-- [ ] Plan level chosen (Go versus Go Plus)
-- [ ] Worker client: `opencode run` headless, or another validated client
+- [ ] `Global` region enabled for DeepSeek in workspace privacy settings
+- [ ] `opencode` headless invocation verified; version pinned
 - [ ] Reviewer prompt written, hashed, committed before the pilot
-- [ ] Smoke test on holdout tasks; worker model recorded
-- [ ] Rate-limit pacing plan for 180 runs, including the monthly reset
+- [ ] Smoke test on holdout tasks; worker model recorded against the selection rule
+- [ ] Pacing: off-peak window chosen; 180 runs spread inside the 5-hour and weekly caps

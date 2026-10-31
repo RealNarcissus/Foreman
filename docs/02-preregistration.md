@@ -56,6 +56,8 @@ H3 and H5 are the hypotheses whose confirmation would make this project matter.
 
 The pilot is deliberately not a test of the hypotheses. Its job is to make the main sweep affordable and correctly sized. Reporting a p-value from 12 tasks x 3 repetitions would be the error this document exists to prevent.
 
+**Budget envelope:** the Go plan ($10/month), with DeepSeek V4.1 Flash as the primary worker and Claude Haiku 5.5 as the G3 reviewer. At off-peak prices the pilot's estimated spend is a few dollars against a $100 model allowance, so budget is not the binding constraint; capability and calendar time are. Details, prerequisites and the worker selection rule are in [05-run-configuration.md](05-run-configuration.md).
+
 ### 3.2 The rung ladder
 
 Cumulative. G0 none; G1 required CI; G2 required static analysis (CodeQL); G3 required AI review; G4 required human review, CODEOWNERS, protected environment.
@@ -230,7 +232,7 @@ Preregistration tag, deviation log, harness, task generators and manifests, hidd
 
 | Item | Deferred to | Reason |
 | --- | --- | --- |
-| Feedback-access interaction (v0.1 RQ6) | after the main sweep | 432 runs for a secondary question; scope was the binding constraint |
+| Feedback-access interaction (v0.1 RQ6) | after the main sweep | 432 runs for a secondary question. Calendar time and harness complexity, not cost: the allowance would cover it |
 | Vendor arm (Copilot coding agent) | after the main sweep | Needs n=96 runs, a separate driver, and may be invalid at the two lowest rungs; also unverified cost |
 | Field layer (AIDev) | after the main sweep | Corroboration only; the controlled layer must stand first |
 | Second subject repository | after the main sweep | Robustness check, not needed for the pilot |
@@ -240,10 +242,11 @@ Preregistration tag, deviation log, harness, task generators and manifests, hidd
 ## 12. Open items before freeze
 
 - [ ] G2 pre-check run in GitHub's default configuration, with a positive control that fires; rung count decided (5 or 4)
-- [ ] Worker model chosen by the smoke test on holdout tasks, inside the allowance ([05](05-run-configuration.md))
+- [ ] Worker model chosen by the smoke test on holdout tasks, under the §3 selection rule ([05](05-run-configuration.md) §3)
+- [ ] `Global` region enabled for DeepSeek in workspace privacy settings; `opencode` version pinned
 - [ ] Reviewer prompt, model and blocking threshold committed and hashed ([05](05-run-configuration.md) §1)
 - [ ] 12 tasks authored, each within the 45-minute budget, each passing the oracle self-test
 - [ ] §7 rubric committed
-- [ ] Pilot budget cap recorded (plan level plus CI minutes)
+- [ ] Pilot spend metered from `opencode.allowance` and recorded per run
 - [ ] Lit-check outcome incorporated (§2 may need revision)
 - [ ] Venue and deadline identified, or explicitly deferred
