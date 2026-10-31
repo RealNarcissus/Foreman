@@ -7,6 +7,7 @@ an oracle or another run is impossible rather than merely detectable.
 import os
 import pathlib
 import shutil
+import subprocess
 
 HOMES = pathlib.Path("/tmp/foreman-home")
 
@@ -16,16 +17,25 @@ def available() -> bool:
 
 
 def home_for(run_id: str) -> pathlib.Path:
+    """A private HOME carrying only the credentials the agent needs.
+
+    Credentials arrive through opencode's own `auth export`/`auth import`, not by
+    copying the state directory: the state directory holds session transcripts,
+    which would leak prior runs (and their task text) into the sandbox.
+    """
     home = HOMES / run_id
     (home / ".config" / "opencode").mkdir(parents=True, exist_ok=True)
     (home / ".local" / "share" / "opencode").mkdir(parents=True, exist_ok=True)
     real = pathlib.Path.home()
-    for src, dst in (
-        (real / ".local/share/opencode/auth.json", home / ".local/share/opencode/auth.json"),
-        (real / ".config/opencode/opencode.json", home / ".config/opencode/opencode.json"),
-    ):
-        if src.exists():
-            shutil.copyfile(src, dst)
+    cfg = real / ".config/opencode/opencode.json"
+    if cfg.exists():
+        shutil.copyfile(cfg, home / ".config/opencode/opencode.json")
+    export = pathlib.Path(os.environ.get(
+        "FOREMAN_AUTH_EXPORT", real / ".foreman" / "auth-export.json"))
+    if export.exists():
+        env = dict(os.environ, HOME=str(home), XDG_DATA_HOME=str(home / ".local/share"))
+        subprocess.run(["opencode", "auth", "import", "--standalone", str(export)],
+                       env=env, capture_output=True, timeout=120)
     return home
 
 

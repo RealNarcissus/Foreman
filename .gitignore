@@ -1,2 +1,6 @@
 runs/
 __pycache__/
+
+# never commit credentials or local auth state
+.foreman/
+auth-export.json
