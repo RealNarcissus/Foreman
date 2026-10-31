@@ -90,7 +90,15 @@ Run the procedure in [04-g2-precheck.md](04-g2-precheck.md) §4: GitHub default 
 
 **Precondition:** a positive control must fire. If a canonical `os.system("echo " + sys.argv[1])` sample produces no alert, the configuration is unvalidated and nothing downstream counts. A local CLI run already failed this test; see [04](04-g2-precheck.md) §3.
 
-**Then:** if fewer than 2 of 5 planted defects produce a security-rule alert, G2 is dropped and the ladder is four rungs. The full table is released either way. A rung that cannot fire is not a treatment.
+**Then:** the five defects run against both the default and extended query suites, giving a 2 x 5 matrix, and the rung follows from the matrix:
+
+| Default | Extended | Rung |
+| --- | --- | --- |
+| >= 2 of 5 | any | G2 = default setup, five rungs, 180 runs |
+| < 2 of 5 | >= 2 of 5 | G2 = extended setup, five rungs, 180 runs, default-blindness reported |
+| < 2 of 5 | < 2 of 5 | G2 dropped, four rungs, 144 runs |
+
+The middle row exists because the two suites are not equivalent in a way that matters here: `py/shell-command-constructed-from-input`, the library-input query most relevant to a library like click, is **not** in the default 43-rule suite. Which suite catches which defect is a result, not a setup detail. The full matrix is released either way.
 
 ---
 

@@ -98,10 +98,10 @@ gh api "repos/OWNER/click-probe/code-scanning/alerts?state=open&per_page=100" \
 
 Record it. This is the noise floor; only alerts beyond it are attributable to a planted defect.
 
-**Step 4 — two positive controls, before any defect.** The second one matters more than the first, because the click defects in the table depend on environment variables rather than argv.
+**Step 4 — three positive controls, before any defect.** The controls differ in *source class*, because that is what determines whether a query can fire at all. All three live in separate files so attribution is unambiguous.
 
 ```sh
-# control A: argv-sourced command construction
+# A: argv-sourced command construction
 cat > src/click/_probe_a.py <<'EOF'
 import os, sys
 def run():
@@ -109,7 +109,7 @@ def run():
 run()
 EOF
 
-# control B: environment-sourced command construction (the class D1/D2 rely on)
+# B: environment-sourced command construction
 cat > src/click/_probe_b.py <<'EOF'
 import os, subprocess
 def run():
@@ -117,16 +117,46 @@ def run():
     subprocess.Popen(f"{editor} file.txt", shell=True)
 run()
 EOF
+
+# C: library-parameter-sourced command construction (click's actual shape)
+cat > src/click/_probe_c.py <<'EOF'
+import subprocess
+def open_url(url: str) -> None:
+    subprocess.Popen(f"xdg-open {url}", shell=True)
+EOF
+
 git add -A && git commit -m "probe: positive controls" && git push
 ```
 
-Then wait for analysis and re-read the alerts. Interpretation is strict:
+Then wait for the analysis and re-read the alerts. Interpretation depends on which control fires:
 
-| Result | Meaning | Action |
+| Fires | Query responsible | Meaning |
 | --- | --- | --- |
-| Both controls alert | Configuration is sound | Proceed to step 5 |
-| Only A alerts | Environment variables are not modelled as sources | D1/D2 cannot fire; click has no argv entry point, so G2 likely cannot fire on realistic defects. Expect to drop G2 |
-| Neither alerts | Configuration invalid, as it was locally | **Stop.** Do not interpret any defect result |
+| A | `py/command-line-injection` | Entry-point sources are modelled |
+| B | `py/command-line-injection` | Environment variables are modelled as sources |
+| C | `py/shell-command-constructed-from-input` | Library inputs are modelled, **but see the suite note below** |
+
+### The suite note, and why it matters here
+
+Verified locally against the pack:
+
+| Query | In default suite (43 rules) | In extended (50 rules) |
+| --- | --- | --- |
+| `py/command-line-injection` | yes | yes |
+| `py/path-injection` | yes | yes |
+| `py/code-injection` | yes | yes |
+| `py/shell-command-constructed-from-input` | **no** | yes |
+
+That last row is the important one. click is a library with no command-line entry point, so the *library-input* query is the one most likely to fire on a realistic planted defect. **GitHub's default configuration does not include it.** A team that presses the button will not see library-parameter command injection at all.
+
+Consequence: control C can only fire if the suite is switched to extended. Run step 4 twice, once on `query_suite=default` and once on `query_suite=extended`:
+
+```sh
+gh api -X PATCH repos/OWNER/click-probe/code-scanning/default-setup \
+  -f state=configured -f query_suite=extended
+```
+
+Record both columns. The default-versus-extended difference is a result in its own right, not a setup annoyance.
 
 **Step 5 — the five defects**, one commit each, reverting between them so the alert delta is attributable:
 
@@ -154,22 +184,26 @@ D1-D5 are shapes an agent could plausibly introduce while "simplifying" the code
 
 ## 5. Decision rule
 
-Unchanged in substance, tightened in one respect:
+Run the five defects against **both** suites and record a 2 x 5 matrix. The rung is defined by what the matrix shows, using this preregistered rule:
 
-- **Precondition:** a positive control must fire. If the canonical `os.system("echo " + sys.argv[1])` sample produces no alert in the target configuration, the configuration is not validated and nothing downstream counts.
-- **Then:** if fewer than 2 of the 5 planted defects produce a *security* rule alert, **G2 is dropped** and the ladder is four rungs (G0, G1, G3, G4). Pilot cost falls from 180 to 144 runs.
-- The full table is released either way, including the defects that were missed.
+| Default column | Extended column | Rung |
+| --- | --- | --- |
+| >= 2 of 5 | any | **G2 = default setup.** Five rungs, 180 runs |
+| < 2 of 5 | >= 2 of 5 | **G2 = extended setup.** Five rungs, 180 runs, and the default-blindness is reported as a finding |
+| < 2 of 5 | < 2 of 5 | **Drop G2.** Four rungs, 144 runs |
 
-Two smaller findings to carry into the design:
+Rationale for the middle row: a rung that cannot fire is not a treatment, but the alternative to dropping it is not silence, it is a different and defensible configuration. Recording which suite reveals the defect is more informative than picking one in advance, and it makes the gate's blind spot the finding rather than a caveat.
 
-- **Suites differ by a lot.** 43 rules versus 172 between the default and extended suites. Which suite the gate runs is a configuration variable that changes what the gate can see, and it must be recorded as part of the rung definition rather than assumed.
-- **Quality rules will fire on agent changes for reasons unrelated to security.** `py/file-not-closed` fired on a five-line control. Gate yield must therefore be adjudicated separately for security-class and quality-class alerts, or the AI/static-analysis rungs will look productive when they are only busy.
+Precondition, unchanged: **control A or B must fire in the target configuration.** If neither does, the configuration is unvalidated, nothing downstream counts, and the local failure in section 3 has simply reproduced itself on GitHub.
 
----
+Two further findings to carry into the design:
+
+- **Suites differ by a lot.** 43 rules versus 172 between default and extended, with the default omitting the query most relevant to a library.
+- **Quality rules fire on agent changes for reasons unrelated to security.** `py/file-not-closed` fired on a five-line control. Gate yield must be adjudicated separately for security-class and quality-class alerts, or a rung will look productive when it is only busy.
 
 ## 6. Open
 
-- [ ] Step 4 controls run: record which of A and B fires
-- [ ] Step 5 defect table completed
+- [ ] Step 4 controls run on both suites: record which of A, B, C fires where
+- [ ] Step 5 defect table completed for both suites
 - [ ] Rung count decided from §5
 - [ ] Version-matched CLI retry only if step 4 fails and GitHub is somehow unavailable (it should not be)
