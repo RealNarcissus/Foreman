@@ -58,6 +58,12 @@ WORKERS = {w.name: w for w in (Reference(), Null(), Tamper())}
 
 
 def get(name: str) -> Worker:
+    if name.startswith("opencode:"):
+        from .opencode_worker import OpenCode
+        model = name.split(":", 1)[1]
+        if "/" not in model:
+            model = f"opencode-go/{model}"
+        return OpenCode(model)
     if name not in WORKERS:
         raise KeyError(f"unknown worker {name!r}; have {sorted(WORKERS)}")
     return WORKERS[name]

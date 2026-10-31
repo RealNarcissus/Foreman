@@ -37,7 +37,8 @@ def diff_of(worktree: pathlib.Path) -> str:
 
 def ledger_row(row: dict) -> None:
     config.LEDGER.parent.mkdir(parents=True, exist_ok=True)
-    new = not config.LEDGER.exists()
+    header = ",".join(row) + "\n"
+    new = not config.LEDGER.exists() or config.LEDGER.read_text().splitlines()[0] != ",".join(row)
     with config.LEDGER.open("a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(row))
         if new:
@@ -49,9 +50,10 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
     rung = rungs.load(rung_id)
     worker = workers.get(worker_name)
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    run_id = f"{task['id']}_{rung_id}_{worker_name.split(':')[1]}_r{repeat}_{stamp}"
+    tag = "".join(c if c.isalnum() else "_" for c in worker_name.split(":", 1)[1])[-28:]
+    run_id = f"{task['id']}_{rung_id}_{tag}_r{repeat}_{stamp}"
     base = config.RUNS / run_id
-    worktree = base / "worktree"
+    worktree = config.WORK / run_id / "worktree"
     prepare(worktree, task)
 
     t0 = time.time()
@@ -59,12 +61,16 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
     diff = diff_of(worktree)
 
     leaked = leak.oracle_leaked(worktree, task["oracle"])
+    log_path = worktree.parent / "worker.log"
+    outside = leak.outside_access(log_path.read_text()) if log_path.exists() else []
     tamper, tamper_evidence = leak.tampered(diff)
     gate_results = gates.run(rung, worktree)
+    contaminated = bool(outside)
     gate_green = all(g["ok"] for g in gate_results) and not leaked and not tamper
     accepted = bool(gate_green and rung["auto_merge"])
     scored = oracle.score(worktree, task["oracle"], base / "oracle")
-    completion = bool(scored["passed"] and not tamper and not leaked)
+    valid = not contaminated and not leaked and not tamper
+    completion = bool(scored["passed"] and valid)
     gate_escape = bool(gate_green and not scored["passed"])
     seconds = round(time.time() - t0, 2)
 
@@ -76,7 +82,8 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
         "gate_green": gate_green, "accepted": accepted,
         "oracle_passed": scored["passed"], "completion": completion,
         "gate_escape": gate_escape, "tamper": tamper,
-        "oracle_leaked": leaked, "seconds": seconds,
+        "oracle_leaked": leaked, "outside_access": outside,
+        "valid": valid, "seconds": seconds,
         "gates": gate_results,
     }
     base.mkdir(parents=True, exist_ok=True)

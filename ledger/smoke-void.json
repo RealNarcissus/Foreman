@@ -1,0 +1,291 @@
+[
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H1",
+    "attempt": 0,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 81.91,
+    "cost_usd": 0.014656,
+    "tokens": {
+      "input": 54654,
+      "output": 2968
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H1",
+    "attempt": 1,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 79.62,
+    "cost_usd": 0.014562,
+    "tokens": {
+      "input": 56325,
+      "output": 2714
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H1",
+    "attempt": 2,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 68.3,
+    "cost_usd": 0.017197,
+    "tokens": {
+      "input": 79629,
+      "output": 2326
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H1",
+    "attempt": 3,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 150.96,
+    "cost_usd": 0.025857,
+    "tokens": {
+      "input": 92557,
+      "output": 3548
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 0,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 60.25,
+    "cost_usd": 0.014495,
+    "tokens": {
+      "input": 61259,
+      "output": 1834
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 1,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 76.53,
+    "cost_usd": 0.011805,
+    "tokens": {
+      "input": 48572,
+      "output": 2545
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 2,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 46.03,
+    "cost_usd": 0.008438,
+    "tokens": {
+      "input": 28618,
+      "output": 1846
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 3,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 85.5,
+    "cost_usd": 0.015742,
+    "tokens": {
+      "input": 62379,
+      "output": 3326
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 0,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 28.94,
+    "cost_usd": 0.011702,
+    "tokens": {
+      "input": 18,
+      "output": 1465
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 1,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 20.32,
+    "cost_usd": 0.004665,
+    "tokens": {
+      "input": 14,
+      "output": 1329
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 2,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 21.33,
+    "cost_usd": 0.004933,
+    "tokens": {
+      "input": 14,
+      "output": 1732
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 3,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 26.52,
+    "cost_usd": 0.005338,
+    "tokens": {
+      "input": 16,
+      "output": 1261
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 0,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 15.26,
+    "cost_usd": 0.00307,
+    "tokens": {
+      "input": 12,
+      "output": 786
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 1,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 18.83,
+    "cost_usd": 0.00292,
+    "tokens": {
+      "input": 12,
+      "output": 666
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 2,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 22.11,
+    "cost_usd": 0.003869,
+    "tokens": {
+      "input": 14,
+      "output": 870
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 3,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 15.68,
+    "cost_usd": 0.002937,
+    "tokens": {
+      "input": 12,
+      "output": 495
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  },
+  {
+    "model": "opencode:mimo-v2.6-flash",
+    "task": "H1",
+    "attempt": 0,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 264.37,
+    "cost_usd": 0.008873,
+    "tokens": {
+      "input": 45640,
+      "output": 1589
+    },
+    "timed_out": false,
+    "void": true,
+    "void_reason": "container escaped: opencode attached to the shared background server; worktree ignored"
+  }
+]
