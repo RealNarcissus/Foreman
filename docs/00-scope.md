@@ -221,6 +221,6 @@ If a capstone rubric must be satisfied, the ladder exercises the GitHub Foundati
 | 2 | Worker: `opencode` headless, DeepSeek V4.1 Flash, `omp` as the alternative client — settled in [05-run-configuration.md](05-run-configuration.md) | M0 |
 | 3 | G3 reviewer: Claude Haiku 5.5 with a pinned prompt and severity threshold, per [05-run-configuration.md](05-run-configuration.md) | M0 |
 | 4 | Public hosting for the subject fork — CodeQL is free on public repos, not private | M0 |
-| 5 | Whether G2 survives its pre-check, or the ladder is four rungs | M0 |
+| 5 | G2 survives, and its definition is settled: **threat model local + remote, default suite** ([04](04-g2-precheck.md)). Five rungs | done |
 
 Deferred with the vendor arm: whether the Copilot coding agent is comparable at G0 and G1, where "merge directly" is not a native vendor operation. If that arm returns, it will be reported as a partial replication rather than a full arm.

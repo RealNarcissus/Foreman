@@ -105,59 +105,75 @@ Configurations worth measuring, in order of realism:
 
 ---
 
-## 5. Runbook
+## 5. Result: the diagnosis holds
 
-**Step 1 — re-run the controls under a local threat model.** No file changes: just change the configuration and re-trigger the analysis.
+After the threat-model change, `py/command-line-injection` fires on both A and B. Reproduced locally as well, so the mechanism is confirmed rather than inferred:
+
+| Control | Source class | Remote only (C1) | Local + remote (C2) | Local reproduction |
+| --- | --- | --- | --- | --- |
+| A `_probe_a.py` | `sys.argv` | none | **`py/command-line-injection`** | line 6 |
+| B `_probe_b.py` | `os.environ` | none | **`py/command-line-injection`** | line 7 |
+| C `_probe_c.py` | library parameter | none | none | none, suite limitation |
+
+Configuration **C2 is validated**: controls fire, so the gate is really looking.
+
+Control C still does not fire, which matches the earlier finding that `py/shell-command-constructed-from-input` is not in the default 43-rule suite. That is a suite effect, not a threat-model effect, and it is available in C3 if the sweep needs it.
+
+### The unexpected part, and the most interesting one
+
+Enabling local sources surfaced **two pre-existing `py/path-injection` alerts in click's own `src/click/utils.py`** — code that the default configuration had reported as clean for the entire baseline. The baseline was one alert; after the change it is three.
+
+So the default gate did not merely miss planted defects. It missed *real findings in a widely used, heavily reviewed library*, because those findings depend on data arriving from local input.
+
+Two consequences:
+
+1. **G2 is C2.** The rung is defined as (threat model = local + remote, suite = default, severity policy as configured). Five rungs, 180 runs. C1's blindness becomes a primary finding rather than a caveat: "the gate as shipped cannot see local-source vulnerabilities, and enabling local sources surfaced two findings in a library with this much scrutiny behind it."
+2. **Those two alerts need adjudication, and that is already the study in miniature.** click is a file-opening library; opening a caller-supplied path is its documented purpose. An alert that is technically true but semantically by-design is exactly the false positive that gate yield must count. Adjudicate both before the pilot and record the verdict, because they are the first real data point for RQ3.
+
+### Two discrepancies to record honestly
+
+- **The API readback said `threat_model: "remote"` immediately after the change was applied**, while the next analysis clearly behaved as though local sources were on. The readback and the behaviour disagree. Record the effective configuration from the UI and from behaviour, not just the API field, and note the discrepancy.
+- **Local reproduction is not identical to GitHub.** The local CLI (queries 1.8.13) reproduces the command-injection alerts but *not* the two path-injection ones that GitHub reports, so GitHub runs a different, presumably newer query pack. Where the two disagree, **GitHub is authoritative**: the gate is what GitHub does, and the local CLI is a convenience.
+
+---
+
+## 6. Remaining steps
+
+**Step 1 — adjudicate the two `py/path-injection` alerts** in `src/click/utils.py`. Get their details:
 
 ```fish
-gh api -X PATCH repos/RealNarcissus/click-probe/code-scanning/default-setup \
-  -f state=configured -f query_suite=default -f threat_model=remote_and_local
-
-git commit --allow-empty -m "probe: re-analyse with local threat model"
-git push
-```
-
-If the API rejects `remote_and_local`, use the UI: Settings, Code security, Code scanning, Default setup, Edit configuration, Threat model, and select the option that includes local sources. Record the exact string the API then reports.
-
-Then wait and re-read:
-
-```fish
-gh run list --limit 3
 gh api "repos/RealNarcissus/click-probe/code-scanning/alerts?state=open&per_page=100" \
-  | jq -r '.[] | "\(.rule.id)  \(.most_recent_instance.location.path)"'
+  | jq -r '.[] | select(.rule.id=="py/path-injection") | "\(.number)  line \(.most_recent_instance.location.start_line)"'
+
+for n in 2 3
+    gh api "repos/RealNarcissus/click-probe/code-scanning/alerts/$n" | jq -r '.most_recent_instance.message.text'
+end
 ```
 
-**Expected if the diagnosis is right:** `py/command-line-injection` on `_probe_a.py` and/or `_probe_b.py`. Control C may still need the extended suite, since `py/shell-command-constructed-from-input` is not in the default 43 rules.
+Record: line, message, true positive or by-design. This is RQ3 data, not housekeeping.
 
-**Step 2 — the five defects, under whichever configuration fired.** One commit each, reverting between:
+**Step 2 — the five defects under C2.** One commit each, reverting between:
 
-| # | Defect | Source class |
-| --- | --- | --- |
-| D1 | Editor invocation as interpolated string, `shell=True` | `EDITOR` environment variable |
-| D2 | Pager invocation as interpolated string, `shell=True` | `PAGER` environment variable |
-| D3 | `open_url` builds a shell string from its argument | function parameter |
-| D4 | File open path joined to CWD unchecked | function parameter |
-| D5 | `eval()` on an option value | parsed CLI value |
+| # | Defect | Source class | Expect |
+| --- | --- | --- | --- |
+| D1 | Editor invocation as interpolated string, `shell=True` | `EDITOR` env | `py/command-line-injection` |
+| D2 | Pager invocation as interpolated string, `shell=True` | `PAGER` env | `py/command-line-injection` |
+| D3 | `open_url` builds a shell string from its argument | function parameter | likely none at C2 |
+| D4 | File open path joined to CWD unchecked | function parameter | uncertain; same class as the utils.py alerts |
+| D5 | `eval()` on an option value | parsed CLI value | `py/code-injection` if local sources reach it |
 
-**Step 3 — only if C2 yields fewer than 2 of 5,** repeat the five defects under C3 (extended suite). Do not run all three configurations on all five defects by default: 15 analyses for a decision that usually resolves in five.
+**Step 3 — only if C2 yields fewer than 2 of 5**, repeat under C3 (extended suite), where the library-input query exists. Do not run three configurations on five defects by default.
 
 Keep the probe repository public, one branch per defect. The alerts page and the matrix are part of the replication package.
 
-### Decision
+---
 
-| C1 | C2 | Rung |
-| --- | --- | --- |
-| >= 2 of 5 | — | G2 = C1. Five rungs, 180 runs |
-| < 2 of 5 | >= 2 of 5 | **G2 = C2, and the C1 blindness is reported as a primary finding.** Five rungs, 180 runs |
-| < 2 of 5 | < 2 of 5 | G2 dropped. Four rungs, 144 runs |
+## 7. Status
 
-The middle row is the likely outcome and the most valuable one: it converts an assumed control into a measured one, and says plainly that the default configuration does not cover a library's inputs.
-
-## 6. Status and open items
-
-Observed so far: C1 (remote threat model) sees none of the three controls, on GitHub and locally.
-
-- [ ] Controls re-run under a local threat model; record which of A, B, C fires
-- [ ] Defect table completed under the configuration that fired
-- [ ] Rung count decided from §5
-- [ ] Version-matched CLI retry only if step 4 fails and GitHub is somehow unavailable (it should not be)
+| Item | State |
+| --- | --- |
+| Baseline under C1 | 1 alert; all three controls silent |
+| C2 validated | controls A and B fire, locally and on GitHub |
+| Rung definition | **G2 = C2** (local + remote threat model, default suite) |
+| Ladder | five rungs, 180 pilot runs |
+| Pending | adjudicate 2 path-injection alerts; run D1-D5 |

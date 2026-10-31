@@ -94,21 +94,17 @@ Run the procedure in [04-g2-precheck.md](04-g2-precheck.md) §4: GitHub default 
 
 > **G2 = (threat model, query suite, severity policy)**
 
-This matters more than expected. A 31 Oct run showed that GitHub's shipped default is `threat_model: remote`, and that `commandargs`, `environment`, `stdin` and `file` are all classified as **local** sources in the Python model pack. Under the default configuration they are not sources at all, so a library or CLI that reads local input has no coverage of command injection or path injection regardless of which queries are installed. All three positive controls returned zero.
+**Resolved on 31 Oct 2026: G2 = C2** (threat model local + remote, default suite, five rungs, 180 pilot runs). Evidence is in [04-g2-precheck.md](04-g2-precheck.md).
 
-| Configuration | Threat model | Suite | Meaning |
+The reason the rung needed a triple: GitHub's shipped default is `threat_model: remote`, and `commandargs`, `environment`, `stdin` and `file` are all classified as **local** sources in the Python model pack. Under the default, a library or CLI that reads local input has no coverage of command injection or path injection regardless of which queries are installed. All three positive controls returned zero under C1 and two of three fired under C2.
+
+| Configuration | Threat model | Suite | Controls fired |
 | --- | --- | --- | --- |
-| C1 | remote | default | What a team gets by pressing the button |
-| C2 | local + remote | default | Deliberately configured for local input |
-| C3 | local + remote | extended | As C2 plus the library-input query |
+| C1 | remote | default | 0 of 3 |
+| C2 | local + remote | default | 2 of 3 (A and B) |
+| C3 | local + remote | extended | not yet run; C needs it |
 
-| C1 | C2 | Rung |
-| --- | --- | --- |
-| >= 2 of 5 | — | G2 = C1, five rungs |
-| < 2 of 5 | >= 2 of 5 | G2 = C2, five rungs, and C1's blindness is a primary finding |
-| < 2 of 5 | < 2 of 5 | G2 dropped, four rungs |
-
-The full matrix is released either way. The details and evidence are in [04-g2-precheck.md](04-g2-precheck.md).
+C1's blindness is a **primary finding**, not a caveat: enabling local sources surfaced two pre-existing `py/path-injection` alerts in click's own `utils.py`, so the default gate was hiding real findings in a heavily reviewed library, not merely missing planted ones. Those two alerts are adjudicated as the first RQ3 data points.
 
 ---
 
