@@ -115,7 +115,19 @@ The UI and the API disagree, and the UI is right:
 | `GET .../code-scanning/default-setup` | `"threat_model": "remote"` |
 | Observed behaviour | Local sources active (controls A and B fire) |
 
-Resolution: **the effective configuration is local + remote**, and the `threat_model` field in the default-setup response is stale or partial. Record the effective configuration from the settings page and from behaviour, and cite both; do not cite the API field alone.
+Resolution: **the effective configuration is local + remote**, and the `default-setup` readback **lags the applied configuration by roughly one analysis cycle**. Observed twice, in both directions:
+
+| Action | Immediate readback | After ~90s and one analysis |
+| --- | --- | --- |
+| set `threat_model` remote_and_local | `"remote"` | `"remote_and_local"` |
+| set `query_suite` back to default | `"extended"` | `"default"` |
+
+So the field is eventually consistent, not stale in the sense of wrong. Two rules follow:
+
+- **Verify after a delay**, or behaviourally: extended-only alerts close on the next analysis after reverting the suite.
+- **Never cite the readback taken immediately after a PATCH.** Cite the UI label plus a post-delay readback.
+
+Configurations C1 and C2 are now stored as reproducible artifacts in [`configs/g2/`](../configs/g2/), each with the exact PATCH payload, the settings it produces, and the verification steps. They are configurations, not labels for runs.
 
 **G2 definition, frozen:**
 
@@ -153,19 +165,40 @@ Each experiment is one commit on `main`, analysed after the push, with the previ
 | `043040e` | C: `Popen(f"xdg-open {url}", shell=True)` on a library parameter | library input | no | — |
 | `6edb6e8` | D3: `open_url(url)` builds a shell string in `_termui_impl.py` | library input | no | — |
 | `8f0159f` | D4: path joined to CWD via a resolve helper in `utils.py` | library input | no | — |
+| `3fedb07` | E: `launch_browser(url)` → shell, **public module, extended suite** | library input | no | — |
+| `3fedb07` | F: `read_entry(name)` → `open`, **public module, extended suite** | library input | no | — |
 
-`7c99c07` is an artefact: a revert of D3 committed under a D4 message. The D4 content is `8f0159f`.
+`7c99c07` is an artefact: a revert of D3 committed under a D4 message. The D4 content is `8f0159f`. The repository history is left unrewritten on purpose; provenance over tidiness.
+
+E and F exist because the first pass on library-parameter defects had a confound: every probe module was named with a leading underscore, which marks it private and may disqualify its functions as library inputs. E and F are public modules with public functions, analysed under the **extended** suite. Both are silent.
+
+### Two causes, separated
+
+The original write-up ran these together. They are not the same claim, and only one survives the E/F test:
+
+| Cause | Status | Evidence |
+| --- | --- | --- |
+| The library-input shell query (`py/shell-command-constructed-from-input`) is absent from the default suite | **Real, but not sufficient** | It is present in extended, and E still did not fire |
+| `py/path-injection` does not model library parameters as sources | **Holds in both suites** | F did not fire under extended either |
+
+**Therefore: switching to the extended suite is not a fix for library-parameter blindness.** It was a plausible hypothesis, it was testable, and it failed. What extended actually bought on this repository was two additional alerts on pre-existing code — `py/overly-permissive-file` at `_compat.py:435` and `actions/untrusted-checkout/medium` at `.github/workflows/nightly.yaml:31` — neither related to the planted defects, and neither adjudicated yet. More throughput, same blind spot.
+
+The remaining explanation is source modelling: CodeQL's library-input sources did not fire for a public function parameter in either suite, in either the shell or the path case. Stated as an observation about this repository and these probes, not as a general claim about CodeQL.
 
 ### What this means for the security stratum
 
-**Only environment- and argv-sourced flows are catchable at C2.** Library-parameter defects are invisible, for two independent reasons:
+**Only environment- and argv-sourced flows were catchable at C2.** The security-class pilot tasks must therefore plant defects whose source is an environment variable, with realistic variety rather than one repeated shape:
 
-- `py/shell-command-constructed-from-input`, the library-input shell query, is not in the default 43-rule suite.
-- `py/path-injection` is in the default suite but does not model library parameters as sources here.
+| Class | Source | Shape |
+| --- | --- | --- |
+| S1 | `EDITOR` | editor invocation loses `shlex.split`, gains `shell=True` |
+| S2 | `PAGER` | pager command assembled as a string instead of argv |
+| S3 | `XDG_*` / config-dir variable | base path taken from the environment without validation |
+| S4 | tool-specific executable variable | resolved executable interpolated into a shell string |
 
-Operational consequence, and it changes task authoring: **the security-class pilot tasks must plant defects whose source is an environment variable** (for click: `EDITOR`, `PAGER`, an XDG or config-directory variable). That is realistic for a CLI library rather than contrived, and it is the only shape the rung can see.
+S3 and S4 exist so the stratum is not three copies of one pattern. A gate that catches only "`EDITOR` plus `shell=True`" has not been shown to catch environment-sourced injection generally.
 
-One further task should be library-parameter-sourced *by design*, as a known-blind control, so coverage is measured rather than assumed. Expect it to score as a gate escape; that is the point.
+One further task is library-parameter-sourced **by design**, as a known-blind control, so the evaluation distinguishes genuine capability from a scanner's coverage boundary. Expect a gate escape; that is the measurement.
 
 ---
 
@@ -180,7 +213,7 @@ Defined before computing, because the choice of denominator changes the answer:
 
 | Metric | C1 (default) | C2 (local + remote) |
 | --- | --- | --- |
-| Planted classes detected (recall) | **0 of 4 (0%)** | **2 of 4 (50%)** |
+| **Observed probe-set recall** (n=4, see caveat) | **0 of 4 (0%)** | **2 of 4 (50%)** |
 | Alerts raised | 1 | 5 |
 | Distinct findings | 1 | 4 |
 | Actionable findings | 0 | 2 |
@@ -193,7 +226,11 @@ Two readings that matter for the paper:
 1. **The default configuration detected nothing real** — not the planted defects, and not the pre-existing findings that the local threat model surfaces. Its single alert was a false positive.
 2. **Enabling local sources doubles nothing cleanly**: it lifts recall from 0% to 50% and precision from 0% to 50%. The gate becomes useful and noisy at the same time. That is a more honest and more interesting result than either "the gate works" or "the gate does not work".
 
-Caveat carried forward: this is n=4 planted classes and n=3 pre-existing alerts on one repository. It is a configuration check, not an estimate. The pilot exists to turn it into one.
+**The 50% figure is observed probe-set recall, and nothing more.** It is the fraction of *these four probes* that fired. It is not an estimate of CodeQL's recall in general, and it must not be quoted as one: four probes, one repository, two of them environment-sourced by construction. The paper should carry the phrase "observed probe-set recall (n=4)" every time this number appears.
+
+The same caution applies to the precision figures, though they are less susceptible to it because the adjudication is inspection of named lines rather than inference.
+
+Caveat carried forward: n=4 planted classes and n=3 adjudicated pre-existing alerts on one repository. This is a configuration check, not an estimate. The pilot exists to turn it into one.
 
 ---
 

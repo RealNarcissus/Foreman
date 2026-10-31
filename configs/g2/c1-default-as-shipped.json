@@ -1,0 +1,27 @@
+{
+  "id": "g2-c1",
+  "label": "GitHub default setup, as shipped",
+  "repository_settings": {
+    "code_security": "enabled",
+    "code_scanning_setup": "default",
+    "query_suite": "default",
+    "threat_model": "remote",
+    "languages": [
+      "actions",
+      "python"
+    ],
+    "scan_events": [
+      "push:main",
+      "pull_request:main",
+      "schedule:weekly"
+    ]
+  },
+  "apply": [
+    "gh api -X PATCH repos/OWNER/REPO/code-scanning/default-setup -f state=configured -f query_suite=default -f threat_model=remote"
+  ],
+  "verify": [
+    "sleep 90",
+    "gh api repos/OWNER/REPO/code-scanning/default-setup | jq -c '{query_suite, threat_model}'"
+  ],
+  "note": "The default-setup readback lags the applied configuration by roughly one analysis cycle. Verify after a delay, or behaviourally: extended-only alerts should close on the next analysis."
+}

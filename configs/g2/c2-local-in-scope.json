@@ -1,0 +1,27 @@
+{
+  "id": "g2-c2",
+  "label": "Default setup with local sources in scope",
+  "repository_settings": {
+    "code_security": "enabled",
+    "code_scanning_setup": "default",
+    "query_suite": "default",
+    "threat_model": "remote_and_local",
+    "languages": [
+      "actions",
+      "python"
+    ],
+    "scan_events": [
+      "push:main",
+      "pull_request:main",
+      "schedule:weekly"
+    ]
+  },
+  "apply": [
+    "gh api -X PATCH repos/OWNER/REPO/code-scanning/default-setup -f state=configured -f query_suite=default -f threat_model=remote_and_local"
+  ],
+  "verify": [
+    "sleep 90",
+    "gh api repos/OWNER/REPO/code-scanning/default-setup | jq -c '{query_suite, threat_model}'"
+  ],
+  "note": "Frozen G2 configuration. The UI label is 'Remote and local sources'. The API field name is threat_model; the value has been observed as remote_and_local only after the readback catches up."
+}

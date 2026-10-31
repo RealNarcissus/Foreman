@@ -1,0 +1,13 @@
+task_id,experiment,stage,subject,defect_class,input_source,expected_detection,actual_detection,alert_id,rule,adjudication,actionable
+P-A,"os.system on sys.argv[1]",probe,click-probe,_probe_a.py,command-injection,commandargs,fire,fire,2,py/command-line-injection,true-positive,yes
+P-B,"Popen(shell=True) on os.environ",probe,click-probe,_probe_b.py,command-injection,environment,fire,fire,3,py/command-line-injection,true-positive,yes
+P-C,"Popen(shell=True) on library param (private module)",probe,click-probe,_probe_c.py,command-injection,library-parameter,none,none,,,not-detected,no
+P-D3,"open_url builds shell string in _termui_impl",probe,click-probe,_termui_impl.py,command-injection,library-parameter,none,none,,,not-detected,no
+P-D4,"path joined to CWD by resolve helper",probe,click-probe,utils.py,path-injection,library-parameter,none,none,,,not-detected,no
+P-E,"Popen(shell=True) on library param (public module, extended suite)",probe,click-probe,probe_e_shell.py,command-injection,library-parameter,none,none,,,not-detected,no
+P-F,"open(join(cwd, name)) on library param (public module, extended suite)",probe,click-probe,probe_f_path.py,path-injection,library-parameter,none,none,,,not-detected,no
+PRE-1,pre-existing,probe,click-probe,utils.py:345,clear-text-logging,none,n/a,fire,1,py/clear-text-logging-sensitive-data,false-positive,no
+PRE-2,pre-existing,probe,click-probe,utils.py:598,path-injection,commandargs,n/a,fire,4,py/path-injection,false-positive,no
+PRE-3,pre-existing,probe,click-probe,utils.py:599,path-injection,commandargs,n/a,fire,5,py/path-injection,false-positive-duplicate-of-PRE-2,no
+PRE-4,pre-existing,probe,click-probe,_compat.py:435,permissive-file,n/a,n/a,fire-extended-only,6,py/overly-permissive-file,NOT-ADJUDICATED,unknown
+PRE-5,pre-existing,probe,click-probe,nightly.yaml:31,untrusted-checkout,n/a,n/a,fire-extended-only,7,actions/untrusted-checkout/medium,NOT-ADJUDICATED,unknown
