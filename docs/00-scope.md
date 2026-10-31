@@ -96,20 +96,21 @@ Cross-cutting factor: **agent feedback access** — blind (one submission, sees 
 
 ### 5.1 Controlled layer (primary, quantitative)
 
-30+ tasks in a repository we own. Each task is a seeded mutation (bug injection) or a small feature with a stated spec, and each has a deterministic acceptance test that fails before and passes after the reference solution.
+12 tasks against a pinned fork, as a pilot: a repository we do not own, at a fixed tag. Each task is a seeded mutation or a small feature with a stated spec. Each carries a **hidden scoring oracle** that the agent never sees and CI never runs.
 
-Why own tasks rather than real closed issues:
+Why seeded tasks rather than real closed issues:
 
-- **No contamination.** The repository is not in training data.
+- **Contamination is bounded, not eliminated.** The subject repository (`pallets/click`) is in training data. Seeded defects are not, because they are injected at run time. Features are never lifted from upstream history. This is weaker than owning the repository and is disclosed as such.
 - **Controlled difficulty.** Three tiers by construction, not by guesswork.
 - **Cheap regeneration.** Task supply is not a bottleneck, and a holdout set is possible.
 - **Deterministic oracle.** Pass/fail is a test, not a review conversation.
+- **Independent oracle.** Success is measured off the gate path, so it cannot be reduced to "made CI green".
 
-Why own tasks rather than *only* field data: field data cannot answer a causal question. There is no counterfactual for "this repo did not require review."
+Why seeded tasks rather than *only* field data: field data cannot answer a causal question. There is no counterfactual for "this repo did not require review."
 
-### 5.2 Field layer (corroboration, external validity)
+### 5.2 Field layer (corroboration, external validity) — **deferred**
 
-A slice of the AIDev agent-PR corpus, used to check whether controlled findings resemble what happens where real projects live. Field data never supplies the primary pass/fail signal; it supplies a sanity check and a limitation paragraph that is honest.
+A slice of the AIDev agent-PR corpus. Deferred until the controlled layer stands; see prereg §11. Field data would never supply the primary pass/fail signal.
 
 ### 5.3 Cheapest high-value artifact *(M0)*
 
@@ -123,8 +124,10 @@ Operational definitions live in the [preregistration](02-preregistration.md). Su
 
 | Metric | Note |
 | --- | --- |
-| Completion rate | Strict variant requires no human repair, so "human fixed it" is not counted as agent success |
-| Escaped defect rate | Post-merge: revert, or a later fix touching the same lines |
+| **Completion, independent** | Hidden oracle passes, no test tampering, no human repair. This is the primary outcome and it is measured off the gate path |
+| Completion, gate-green | Visible suite passes. Reported beside the above; the gap between them is a finding in itself |
+| **Gate escape** | Gate passed and the hidden oracle failed. Immediate and independent, unlike a post-merge watch |
+| Post-merge defect | Secondary: revert, or a later fix touching the same lines |
 | Human touch minutes and intervention class | Reuses the MSR 2026 four-category taxonomy rather than inventing one, and reports whether our controlled setting reproduces their field proportions |
 | Review round trips | Changes-requested cycles before merge |
 | Gate yield | True-positive fraction of blocks, human-adjudicated on a labelled subset |
@@ -140,8 +143,8 @@ Operational definitions live in the [preregistration](02-preregistration.md). Su
 | Artifact | What it demonstrates |
 | --- | --- |
 | Reference pipeline (the repo itself, under G4) | The full GitHub path works, on non-trivial code |
-| Harness: task runner, artifact capture, scorer | Reproducibility; one command to regenerate every table |
-| 30+ task suite with generators | Reusable, extensible, contamination-free |
+| Harness: task runner, artifact capture, **hidden scoring oracle**, gate-yield adjudication | Measurement independence; one command to regenerate every table |
+| 12-task pilot suite with generators and hidden oracles | Reusable, extensible, contamination-free |
 | Results table on Pages | Findings, regenerable from artifacts |
 | Experience report with replication package | The writeup, framed as an experience report, not a proof |
 | Guardrail-adoption dataset *(if M0 confirms it is missing)* | Cheapest independent contribution |
@@ -150,12 +153,12 @@ Operational definitions live in the [preregistration](02-preregistration.md). Su
 
 ## 8. In and out of v1
 
-| In v1 | Out of v1 |
+| In v1 (pilot) | Out of v1 |
 | --- | --- |
 | One subject repository, one language | Multi-repo, multi-language |
-| 5 rungs x 30+ tasks, plus a feedback-mode interaction on G1-G3 | Model-vs-model comparison |
-| Gate-yield analysis and intervention taxonomy | Submission-based public leaderboard (other agents cannot be run fairly) |
-| AIDev field corroboration | Custom-agent arm |
+| 12 tasks x 5 rungs x k=3 = 180 runs, one agent, one pinned version | Feedback-access interaction, vendor arm, model comparison |
+| Hidden scoring oracle separate from the gate suite | Submission-based public leaderboard (other agents cannot be run fairly) |
+| Gate-yield analysis and intervention taxonomy | AIDev field corroboration (deferred; see prereg §11) |
 | One tagged release | Release automation as a research question |
 | Dependabot and secret scanning present in the pipeline | Dependabot and secret scanning as measured variables |
 
@@ -165,21 +168,24 @@ Operational definitions live in the [preregistration](02-preregistration.md). Su
 
 | M | Scope | Effort |
 | --- | --- | --- |
-| M0 | Literature check, preregistration frozen, AIDev guardrail scrape feasibility | half day |
-| M1 | Harness plus one rung end to end, artifacts captured | one weekend |
-| M2 | Controlled task suite with difficulty tiers | one weekend |
-| M3 | Main sweep | compute-bound |
-| M4 | Field corroboration | a few days |
-| M5 | Writeup and Pages results | one to two weekends |
+| M0 | Lit check; **G2 pre-check**; 12 tasks authored within budget; rubric; prereg frozen | 1-2 days |
+| M1 | Harness: image, rung configs, hidden-oracle runner, leak check, one rung end to end | one weekend |
+| M2 | **Pilot: 180 runs**, artifacts captured | compute-bound, about a day of wall clock |
+| M3 | Pilot writeup: descriptive results, task-quality review, power analysis for the main sweep | one weekend |
+| M4 | Main sweep, sized by the power analysis | conditional on M3 |
+| M5 | Field layer | conditional |
+
+Pilot first, and the pilot is the deliverable until it is done. The 1,068-run design in an earlier version of this plan was not affordable, which made every downstream decision fake.
 
 ### Kill criteria, decided before the work rather than after
 
 | If | Then |
 | --- | --- |
-| Copilot coding agent cannot be driven at acceptable cost per run after M1 | Drop the vendor arm. Keep CLI agent plus field data. **The guardrail question survives**, which is why this direction is safe to invest in |
-| AIDev scrape shows guardrail adoption too sparse to correlate | Field layer becomes descriptive. Controlled layer carries the paper |
-| M3 shows no measurable difference across rungs | Publish the null result with the replication package. It still counts |
-| Infra failure rate stays above roughly 30% at M3 | The design is not viable as specified; revise before spending further |
+| Fewer than 2 of 5 planted defects trigger a CodeQL security alert | Drop G2. Ladder becomes four rungs, 144 pilot runs. A rung that cannot fire is not a treatment |
+| Infra failure rate stays above 10% in the pilot | Fix the harness before any main sweep. Do not interpret pilot numbers |
+| The pilot's effect sizes cannot be powered at an affordable N | Publish the pilot as a feasibility and effect-size study, with the power calculation attached. That is a legitimate result |
+| Pilot shows no measurable difference across rungs | Publish the null result with the replication package. It still counts |
+| A task's hidden oracle is ambiguous | Repair or drop the task. Never reinterpret the oracle to fit the run |
 
 ---
 
@@ -187,14 +193,15 @@ Operational definitions live in the [preregistration](02-preregistration.md). Su
 
 | Risk | Mitigation |
 | --- | --- |
-| Non-determinism: same task, different outcome | k repetitions per cell; report distributions, never single runs. This is the field's most common error |
-| Contamination | Own repository for the controlled layer; date-stamped tasks |
-| CI flake polluting first-pass success | Detect flaky tests before the sweep and exclude them explicitly |
-| Human gate noise and reviewer drift | Written rubric; second reviewer on a 20% subset; report agreement |
+| **Success and the gate share one oracle** (found in review) | Two oracles: a visible gate suite and a hidden scoring oracle the agent never sees and CI never runs. Leak check per run. This is the difference between measuring capability and measuring gate compliance |
+| Non-determinism: same task, different outcome | k=3 in the pilot; distributions, never single runs |
+| Contamination | Seeded mutations; no features from upstream history; holdout set |
+| CI flake polluting gate results | Detect flaky tests before the pilot and exclude them explicitly |
+| Human gate noise and reviewer drift | Written rubric; second reviewer on a 20% subset; report kappa |
+| Reviewer is also the author | Disclosed. Blind re-scoring on the subset is the only available mitigation |
 | Vendor drift over the sweep window | Randomised interleaving of condition order per task with a fixed seed, not rung-by-rung batches |
-| Self-measured review time bias | Disclosed as a limitation; the field layer compensates on external validity |
 | Actions minute quotas and runner variance | Local container is the default backend; Actions is one backend, not the host of the study |
-| Credentials and cost | Budget cap preregistered, with a preregistered degradation order when exceeded |
+| Budget overrun | Cap recorded before the pilot; the pilot is fixed-size, so the exposure is bounded |
 
 ---
 
@@ -210,10 +217,10 @@ If a capstone rubric must be satisfied, the ladder exercises the GitHub Foundati
 
 | # | Decision | Needed by |
 | --- | --- | --- |
-| 1 | Subject repository and language — recommended: `pallets/click` 8.5.0, see [03-subject-repo.md](03-subject-repo.md) | M1 |
+| 1 | Subject repository — recommended `pallets/click` @ `8.5.0` (commit `8b19813`), see [03-subject-repo.md](03-subject-repo.md). Conditional on decision 5 | M0 |
 | 2 | CLI agent and pinned model version | M1 |
-| 3 | Which vendor AI reviewer occupies the G3 gate | M2 |
-| 4 | Repo hosting for the controlled layer (public, for reproducibility) | M2 |
-| 5 | Whether the vendor arm is valid at G0/G1, where "merge directly" is not a native vendor operation | M1 |
+| 3 | Which vendor AI reviewer occupies G3 (needed for the pilot, not just the main sweep) | M0 |
+| 4 | Public hosting for the subject fork — CodeQL is free on public repos, not private | M0 |
+| 5 | Whether G2 survives its pre-check, or the ladder is four rungs | M0 |
 
-Decision 5 is a known soft spot: the Copilot arm may only be comparable at G1-G4, which would make it a partial replication rather than a full arm. It will be reported as such.
+Deferred with the vendor arm: whether the Copilot coding agent is comparable at G0 and G1, where "merge directly" is not a native vendor operation. If that arm returns, it will be reported as a partial replication rather than a full arm.
