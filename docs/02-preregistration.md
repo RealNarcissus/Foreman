@@ -94,17 +94,21 @@ Run the procedure in [04-g2-precheck.md](04-g2-precheck.md) §4: GitHub default 
 
 > **G2 = (threat model, query suite, severity policy)**
 
-**Resolved on 31 Oct 2026: G2 = C2** (threat model local + remote, default suite, five rungs, 180 pilot runs). Evidence is in [04-g2-precheck.md](04-g2-precheck.md).
+**Resolved and frozen on 31 Oct 2026: G2 = C2** (threat model *Remote and local sources*, query suite *Default*, five rungs, 180 pilot runs). Evidence is in [04-g2-precheck.md](04-g2-precheck.md).
 
-The reason the rung needed a triple: GitHub's shipped default is `threat_model: remote`, and `commandargs`, `environment`, `stdin` and `file` are all classified as **local** sources in the Python model pack. Under the default, a library or CLI that reads local input has no coverage of command injection or path injection regardless of which queries are installed. All three positive controls returned zero under C1 and two of three fired under C2.
+The reason the rung needed a triple: GitHub's shipped default is `threat_model: remote`, and `commandargs`, `environment`, `stdin` and `file` are all classified as **local** sources. Under the default, a library reading local input has no coverage at all. Measured on four planted defect classes:
 
-| Configuration | Threat model | Suite | Controls fired |
-| --- | --- | --- | --- |
-| C1 | remote | default | 0 of 3 |
-| C2 | local + remote | default | 2 of 3 (A and B) |
-| C3 | local + remote | extended | not yet run; C needs it |
+| Configuration | Controls fired | Planted recall | Actionable findings | Precision over alerts |
+| --- | --- | --- | --- | --- |
+| C1 remote, default suite | 0 of 2 | 0 of 4 | 0 | 0 of 1 |
+| C2 local + remote, default suite | 2 of 2 | **2 of 4** | **2** | 2 of 5 |
 
-C1's blindness is a **primary finding**, not a caveat: enabling local sources surfaced two pre-existing `py/path-injection` alerts in click's own `utils.py`, so the default gate was hiding real findings in a heavily reviewed library, not merely missing planted ones. Those two alerts are adjudicated as the first RQ3 data points.
+Two constraints follow, and both are binding on task authoring:
+
+1. **Security-class defects must be environment-sourced** (`EDITOR`, `PAGER`, or a config/XDG variable). Library-parameter defects are invisible at C2: the library-input shell query is absent from the default suite, and `py/path-injection` does not model library parameters here. Verified by three planted attempts that produced no alert.
+2. **Gate yield is computed on actionable findings, not alerts.** Five alerts deduplicated to four findings and two actionable defects; one expression produced two alerts and all three pre-existing alerts were false positives.
+
+One library-parameter security task is retained as a *known-blind control*, expected to score as a gate escape, so the paper reports coverage as well as yield.
 
 ---
 

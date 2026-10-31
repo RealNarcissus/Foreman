@@ -160,6 +160,8 @@ The holdout set (prereg §4.4) checks whether contamination flattered the result
 | 3 | `core.py`, `types.py`, `decorators.py` | Separator-tolerant tuple type; case-insensitive choice; per-command env prefix; suppress-help context setting |
 | **Security** | `_termui_impl.py`, `utils.py`, `types.py` | Revert pager resolution to string interpolation with `shell=True`; weaken editor command handling; `open_url` argument handling; path joining without a common-prefix check |
 
+**Measured constraint on this row (pre-check, 31 Oct):** only environment-sourced defects are detectable at G2. Library-parameter defects are invisible — the library-input shell query is absent from the default suite and path injection does not model library parameters. So the security stratum must plant env-sourced defects (`EDITOR`, `PAGER`, config/XDG variables), which for a CLI library is realistic rather than contrived. One library-parameter task stays in the suite as a known-blind control, expected to escape. See [04-g2-precheck.md](04-g2-precheck.md) §7.
+
 The security stratum targets `_termui_impl.py` sinks rather than `shell_completion.py` templates, for the reason in §6. Whether the static-analysis gate detects them is decided by the pre-check, not assumed.
 
 Logic vs security is an orthogonal label in prereg §4.1a, targeted at 3 of 12 pilot tasks.

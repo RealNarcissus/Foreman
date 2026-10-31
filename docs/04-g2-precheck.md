@@ -105,100 +105,121 @@ Configurations worth measuring, in order of realism:
 
 ---
 
-## 5. Result: the diagnosis holds
+## 5. Configuration resolved
 
-After the threat-model change, `py/command-line-injection` fires on both A and B. Reproduced locally as well, so the mechanism is confirmed rather than inferred:
+The UI and the API disagree, and the UI is right:
 
-| Control | Source class | Remote only (C1) | Local + remote (C2) | Local reproduction |
-| --- | --- | --- | --- | --- |
-| A `_probe_a.py` | `sys.argv` | none | **`py/command-line-injection`** | line 6 |
-| B `_probe_b.py` | `os.environ` | none | **`py/command-line-injection`** | line 7 |
-| C `_probe_c.py` | library parameter | none | none | none, suite limitation |
+| Source | Reports |
+| --- | --- |
+| Settings, Advanced Security, CodeQL default configuration | Threat model: **"Remote and local sources"**, Query suite: Default, Languages: Actions + Python |
+| `GET .../code-scanning/default-setup` | `"threat_model": "remote"` |
+| Observed behaviour | Local sources active (controls A and B fire) |
 
-Configuration **C2 is validated**: controls fire, so the gate is really looking.
+Resolution: **the effective configuration is local + remote**, and the `threat_model` field in the default-setup response is stale or partial. Record the effective configuration from the settings page and from behaviour, and cite both; do not cite the API field alone.
 
-Control C still does not fire, which matches the earlier finding that `py/shell-command-constructed-from-input` is not in the default 43-rule suite. That is a suite effect, not a threat-model effect, and it is available in C3 if the sweep needs it.
+**G2 definition, frozen:**
 
-### The unexpected part, and the most interesting one
+| Component | Value |
+| --- | --- |
+| Threat model | Remote and local sources |
+| Query suite | Default (43 rules) |
+| Severity policy | GitHub default setup, public repository |
+| Scan events | Push and pull request to main; weekly schedule |
 
-Enabling local sources surfaced **two pre-existing `py/path-injection` alerts in click's own `src/click/utils.py`** — code that the default configuration had reported as clean for the entire baseline. The baseline was one alert; after the change it is three.
+---
 
-So the default gate did not merely miss planted defects. It missed *real findings in a widely used, heavily reviewed library*, because those findings depend on data arriving from local input.
-
-Two consequences:
-
-1. **G2 is C2.** The rung is defined as (threat model = local + remote, suite = default, severity policy as configured). Five rungs, 180 runs. C1's blindness becomes a primary finding rather than a caveat: "the gate as shipped cannot see local-source vulnerabilities, and enabling local sources surfaced two findings in a library with this much scrutiny behind it."
-2. **Those two alerts need adjudication, and that is already the study in miniature.** click is a file-opening library; opening a caller-supplied path is its documented purpose. An alert that is technically true but semantically by-design is exactly the false positive that gate yield must count. Adjudicate both before the pilot and record the verdict, because they are the first real data point for RQ3.
-
-### Adjudication of the three pre-existing alerts
+## 6. Adjudication of the three pre-existing alerts
 
 All five open alerts inspected on 31 Oct 2026. The two planted probes are true positives by construction; the three pre-existing ones are not what the gate implies they are.
 
 | # | Rule | Location | What the code does | Verdict |
 | --- | --- | --- | --- | --- |
-| 1 | `py/clear-text-logging-sensitive-data` | `utils.py:345` `file.write(out)` | `echo()` writing to an output stream, which is the documented purpose of the function | **False positive** (semantic) |
+| 1 | `py/clear-text-logging-sensitive-data` | `utils.py:345` `file.write(out)` | `echo()` writing to an output stream, the documented purpose of the function | **False positive** (semantic) |
 | 4 | `py/path-injection` | `utils.py:598` `os.path.exists(path)` | `_detect_program_name()`; `path` defaults to `sys.argv[0]`, and the only call site (`core.py:1544`) passes nothing | **False positive** (benign) |
-| 5 | `py/path-injection` | `utils.py:599` `os.path.exists(f"{path}.exe")` | The adjacent branch of the same expression, on Windows | **False positive**, duplicate of 4 |
+| 5 | `py/path-injection` | `utils.py:599` `os.path.exists(f"{path}.exe")` | Adjacent branch of the same expression, Windows path | **False positive**, duplicate of 4 |
 
-Reasoning for 4 and 5: an existence check on the path of the script that is already running reveals nothing to an attacker, who by controlling `argv[0]` has already chosen the invocation. The dataflow is real — `sys.argv[0]` is a `commandargs` source and `os.path.exists` is a sink — but the security consequence is nil. This is a genuine dataflow finding and a meaningless defect.
+An existence check on the path of the process that is already running reveals nothing to an attacker who, by controlling `argv[0]`, has already chosen the invocation. The dataflow is real; the defect is not.
 
-**Three numbers matter here, and they are not the same number:**
+---
 
-| Unit | Count | How it is counted |
+## 7. Planted-defect experiments
+
+Each experiment is one commit on `main`, analysed after the push, with the previous defect reverted first so attribution is unambiguous.
+
+| Commit | Experiment | Source class | Fired | Rule |
+| --- | --- | --- | --- | --- |
+| `043040e` | A: `os.system` on `sys.argv[1]` | `commandargs` | **yes** | `py/command-line-injection` |
+| `043040e` | B: `Popen(f"{editor} f", shell=True)` on `os.environ` | `environment` | **yes** | `py/command-line-injection` |
+| `043040e` | C: `Popen(f"xdg-open {url}", shell=True)` on a library parameter | library input | no | — |
+| `6edb6e8` | D3: `open_url(url)` builds a shell string in `_termui_impl.py` | library input | no | — |
+| `8f0159f` | D4: path joined to CWD via a resolve helper in `utils.py` | library input | no | — |
+
+`7c99c07` is an artefact: a revert of D3 committed under a D4 message. The D4 content is `8f0159f`.
+
+### What this means for the security stratum
+
+**Only environment- and argv-sourced flows are catchable at C2.** Library-parameter defects are invisible, for two independent reasons:
+
+- `py/shell-command-constructed-from-input`, the library-input shell query, is not in the default 43-rule suite.
+- `py/path-injection` is in the default suite but does not model library parameters as sources here.
+
+Operational consequence, and it changes task authoring: **the security-class pilot tasks must plant defects whose source is an environment variable** (for click: `EDITOR`, `PAGER`, an XDG or config-directory variable). That is realistic for a CLI library rather than contrived, and it is the only shape the rung can see.
+
+One further task should be library-parameter-sourced *by design*, as a known-blind control, so coverage is measured rather than assumed. Expect it to score as a gate escape; that is the point.
+
+---
+
+## 8. Recall, precision and deduplicated yield
+
+Defined before computing, because the choice of denominator changes the answer:
+
+- **Planted classes** — the four defect shapes actually run: argv-to-shell, env-to-shell, param-to-shell, param-to-path.
+- **Alert** — one row from the API.
+- **Distinct finding** — alerts deduplicated by rule and code expression; alerts 4 and 5 are one finding.
+- **Actionable** — a finding a maintainer would act on, as adjudicated.
+
+| Metric | C1 (default) | C2 (local + remote) |
 | --- | --- | --- |
-| Alerts | 5 | What the API returns |
-| Distinct findings | 4 | Alerts 4 and 5 are one expression |
-| Actionable defects | 2 | The two planted probes |
+| Planted classes detected (recall) | **0 of 4 (0%)** | **2 of 4 (50%)** |
+| Alerts raised | 1 | 5 |
+| Distinct findings | 1 | 4 |
+| Actionable findings | 0 | 2 |
+| Precision over alerts | 0 of 1 (0%) | 2 of 5 (40%) |
+| Precision over distinct findings | 0 of 1 (0%) | 2 of 4 (50%) |
+| **Deduplicated actionable yield** | **0** | **2** |
 
-RQ3 must be phrased in terms of the third. Gate yield computed on alert counts would credit this gate with five findings when it produced two, and would also charge it with three failures it did not really commit — the FPs are cheap to dismiss, not costly to fix.
+Two readings that matter for the paper:
 
-One further point for the writeup: **the default configuration reported exactly one of these three, and it was the one least connected to local input.** So C1's "clean" baseline was not quiet, it was under-instrumented.
+1. **The default configuration detected nothing real** — not the planted defects, and not the pre-existing findings that the local threat model surfaces. Its single alert was a false positive.
+2. **Enabling local sources doubles nothing cleanly**: it lifts recall from 0% to 50% and precision from 0% to 50%. The gate becomes useful and noisy at the same time. That is a more honest and more interesting result than either "the gate works" or "the gate does not work".
 
-### Two discrepancies to record honestly
-
-- **The API readback said `threat_model: "remote"` immediately after the change was applied**, while the next analysis clearly behaved as though local sources were on. The readback and the behaviour disagree. Record the effective configuration from the UI and from behaviour, not just the API field, and note the discrepancy.
-- **Local reproduction is not identical to GitHub.** The local CLI (queries 1.8.13) reproduces the command-injection alerts but *not* the two path-injection ones that GitHub reports, so GitHub runs a different, presumably newer query pack. Where the two disagree, **GitHub is authoritative**: the gate is what GitHub does, and the local CLI is a convenience.
-
----
-
-## 6. Remaining steps
-
-**Step 1 — adjudicate the two `py/path-injection` alerts** in `src/click/utils.py`. Get their details:
-
-```fish
-gh api "repos/RealNarcissus/click-probe/code-scanning/alerts?state=open&per_page=100" \
-  | jq -r '.[] | select(.rule.id=="py/path-injection") | "\(.number)  line \(.most_recent_instance.location.start_line)"'
-
-for n in 2 3
-    gh api "repos/RealNarcissus/click-probe/code-scanning/alerts/$n" | jq -r '.most_recent_instance.message.text'
-end
-```
-
-Record: line, message, true positive or by-design. This is RQ3 data, not housekeeping.
-
-**Step 2 — the five defects under C2.** One commit each, reverting between:
-
-| # | Defect | Source class | Expect |
-| --- | --- | --- | --- |
-| D1 | Editor invocation as interpolated string, `shell=True` | `EDITOR` env | `py/command-line-injection` |
-| D2 | Pager invocation as interpolated string, `shell=True` | `PAGER` env | `py/command-line-injection` |
-| D3 | `open_url` builds a shell string from its argument | function parameter | likely none at C2 |
-| D4 | File open path joined to CWD unchecked | function parameter | uncertain; same class as the utils.py alerts |
-| D5 | `eval()` on an option value | parsed CLI value | `py/code-injection` if local sources reach it |
-
-**Step 3 — only if C2 yields fewer than 2 of 5**, repeat under C3 (extended suite), where the library-input query exists. Do not run three configurations on five defects by default.
-
-Keep the probe repository public, one branch per defect. The alerts page and the matrix are part of the replication package.
+Caveat carried forward: this is n=4 planted classes and n=3 pre-existing alerts on one repository. It is a configuration check, not an estimate. The pilot exists to turn it into one.
 
 ---
 
-## 7. Status
+## 9. Decision
+
+**G2 stands, defined as C2.** Five rungs, 180 pilot runs.
+
+The rung is defensible on evidence rather than assertion: controls fire, two of four planted classes are detected, and the configuration is a documented, selectable GitHub setting rather than a bespoke local harness.
+
+What the pre-check changed in the plan:
+
+- The security stratum is now **env-sourced by constraint**, not by preference (§7).
+- Gate yield is computed on **actionable findings**, not alerts (§8), or the gate would be credited for noise.
+- The configuration record gains threat model as a required field.
+- One library-parameter task is kept as a known-blind control, so the paper reports coverage as well as yield.
+
+---
+
+## 10. Status
 
 | Item | State |
 | --- | --- |
-| Baseline under C1 | 1 alert; all three controls silent |
-| C2 validated | controls A and B fire, locally and on GitHub |
-| Rung definition | **G2 = C2** (local + remote threat model, default suite) |
-| Ladder | five rungs, 180 pilot runs |
-| Pre-existing alerts | adjudicated: 3 of 3 false positives; 5 alerts = 4 findings = 2 actionable defects |
-| Pending | run D1-D5 under C2 |
+| Configuration | resolved: Remote and local sources, Default suite |
+| Controls | A and B fire; C does not (suite limitation) |
+| Defect experiments | D3 and D4 both silent; four classes tested |
+| Pre-existing alerts | 3 of 3 adjudicated false positives |
+| Recall / precision / yield | 50% / 40% of alerts / 2 actionable |
+| G2 | **frozen as C2**, five rungs |
+| Remaining | author 12 tasks with the env-sourced security constraint; smoke test; reviewer prompt |
