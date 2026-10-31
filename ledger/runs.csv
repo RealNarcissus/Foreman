@@ -25,3 +25,4 @@ H2_G0_claude_haiku_5_5_r1_20261031T172801Z,H2,3,feature,G0,opencode:claude-haiku
 H2_G0_claude_haiku_5_5_r2_20261031T172829Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,32.64
 H2_G0_claude_haiku_5_5_r3_20261031T172901Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,28.81
 T1-01_G0_deepseek_v4_1_flash_r0_20261031T174859Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,48.91
+T1-01_G0_reference_r0_20261031T175152Z,T1-01,1,logic,G0,scripted:reference,True,True,True,True,False,False,False,2.81

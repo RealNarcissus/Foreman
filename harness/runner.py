@@ -1,6 +1,7 @@
 """One run: provision, act, gate, score, record."""
 import csv
 import datetime as dt
+import os
 import json
 import pathlib
 import shutil
@@ -41,6 +42,11 @@ def run_git(cwd, *args) -> str:
 def diff_of(worktree: pathlib.Path) -> str:
     run_git(worktree, "add", "-A")
     return run_git(worktree, "diff", "--cached")
+
+
+def config_path_home(worktree: pathlib.Path) -> pathlib.Path:
+    from . import sandbox as _sb
+    return _sb.HOMES / worktree.parent.name
 
 
 def ledger_row(row: dict) -> None:
@@ -114,6 +120,11 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
     }, indent=2) + "\n")
     (base / "diff.patch").write_text(diff)
     (base / "record.json").write_text(json.dumps(record, indent=2) + "\n")
+    if sandbox.available() and not os.environ.get("FOREMAN_KEEP_HOMES"):
+        # Each sandbox HOME carries a full credential/config tree (~150MB).
+        # Four of them fill a 7.5GB tmpfs, so they are disposable.
+        shutil.rmtree(config_path_home(worktree), ignore_errors=True)
+
     ledger_row({k: record[k] for k in (
         "run_id", "task_id", "tier", "cls", "rung", "worker", "gate_green",
         "accepted", "oracle_passed", "completion", "gate_escape", "tamper",
