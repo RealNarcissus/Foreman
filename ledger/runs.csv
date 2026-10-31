@@ -12,3 +12,16 @@ H1_G0_deepseek_v4_1_flash_r0_20261031T164349Z,H1,1,logic,G0,opencode:deepseek-v4
 H1_G0_deepseek_v4_1_flash_r1_20261031T164650Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,50.27
 H1_G0_deepseek_v4_1_flash_r2_20261031T164740Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,45.61
 H1_G0_deepseek_v4_1_flash_r3_20261031T164826Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,73.03
+H2_G0_deepseek_v4_1_flash_r0_20261031T164939Z,H2,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,396.87
+H2_G0_deepseek_v4_1_flash_r1_20261031T165616Z,H2,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,328.51
+H2_G0_deepseek_v4_1_flash_r2_20261031T170145Z,H2,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,284.98
+H2_G0_deepseek_v4_1_flash_r3_20261031T170630Z,H2,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,1161.38
+H1_G0_claude_haiku_5_5_r0_20261031T172551Z,H1,1,logic,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,33.57
+H1_G0_claude_haiku_5_5_r1_20261031T172625Z,H1,1,logic,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,16.72
+H1_G0_claude_haiku_5_5_r2_20261031T172642Z,H1,1,logic,G0,opencode:claude-haiku-5-5,True,True,False,False,True,False,False,21.84
+H1_G0_claude_haiku_5_5_r3_20261031T172704Z,H1,1,logic,G0,opencode:claude-haiku-5-5,True,True,False,False,True,False,False,19.63
+H2_G0_claude_haiku_5_5_r0_20261031T172723Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,37.44
+H2_G0_claude_haiku_5_5_r1_20261031T172801Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,27.78
+H2_G0_claude_haiku_5_5_r2_20261031T172829Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,32.64
+H2_G0_claude_haiku_5_5_r3_20261031T172901Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,28.81
+T1-01_G0_deepseek_v4_1_flash_r0_20261031T174859Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,48.91

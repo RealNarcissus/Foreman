@@ -10,7 +10,7 @@ import tempfile
 RUNS = pathlib.Path(os.environ.get("FOREMAN_RUNS", "/tmp/foreman-runs"))
 # Worktrees get their own root so `..` from inside one reaches nothing sensitive.
 WORK = pathlib.Path(os.environ.get("FOREMAN_WORK", "/tmp/foreman-work"))
-LEDGER = ROOT / "ledger" / "runs.csv"
+LEDGER = pathlib.Path(os.environ.get("FOREMAN_LEDGER", ROOT / "ledger" / "runs.csv"))
 CODEQL = os.environ.get("FOREMAN_CODEQL", "/tmp/cql/codeql/codeql")
 # Frozen G2 configuration (configs/g2/c2-local-in-scope.json).
 # GitHub's UI label "Remote and local sources" is NOT a CodeQL CLI threat-model

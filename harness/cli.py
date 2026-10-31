@@ -55,6 +55,8 @@ def main(argv=None):
     d = sub.add_parser("demo"); d.set_defaults(fn=cmd_demo)
     d.add_argument("--tasks"); d.add_argument("--rungs"); d.add_argument("--workers")
 
+    sc = sub.add_parser("selfcheck"); sc.set_defaults(fn=lambda a: sys.exit(__import__("harness.selfcheck", fromlist=["main"]).main()))
+
     a = p.parse_args(argv)
     a.fn(a)
 

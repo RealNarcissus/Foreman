@@ -58,5 +58,185 @@
       "output": 1621
     },
     "timed_out": false
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 0,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 396.87,
+    "cost_usd": 0.031,
+    "tokens": {
+      "input": 102036,
+      "output": 6538
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 1,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 328.51,
+    "cost_usd": 0.023205,
+    "tokens": {
+      "input": 85011,
+      "output": 4639
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 2,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 284.98,
+    "cost_usd": 0.018068,
+    "tokens": {
+      "input": 57635,
+      "output": 4192
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:deepseek-v4.1-flash",
+    "task": "H2",
+    "attempt": 3,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 1161.38,
+    "cost_usd": 0.029675,
+    "tokens": {
+      "input": 100878,
+      "output": 6887
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 0,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 33.57,
+    "cost_usd": 0.002037,
+    "tokens": {
+      "input": 10,
+      "output": 799
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 1,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 16.72,
+    "cost_usd": 0.00159,
+    "tokens": {
+      "input": 8,
+      "output": 550
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 2,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 21.84,
+    "cost_usd": 0.0,
+    "tokens": {
+      "input": 0,
+      "output": 0
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H1",
+    "attempt": 3,
+    "completion": false,
+    "oracle_passed": false,
+    "valid": true,
+    "seconds": 19.63,
+    "cost_usd": 0.0,
+    "tokens": {
+      "input": 0,
+      "output": 0
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 0,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 37.44,
+    "cost_usd": 0.001726,
+    "tokens": {
+      "input": 14,
+      "output": 1002
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 1,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 27.78,
+    "cost_usd": 0.001775,
+    "tokens": {
+      "input": 12,
+      "output": 993
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 2,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 32.64,
+    "cost_usd": 0.001121,
+    "tokens": {
+      "input": 10,
+      "output": 611
+    },
+    "timed_out": false
+  },
+  {
+    "model": "opencode:claude-haiku-5-5",
+    "task": "H2",
+    "attempt": 3,
+    "completion": true,
+    "oracle_passed": true,
+    "valid": true,
+    "seconds": 28.81,
+    "cost_usd": 0.001559,
+    "tokens": {
+      "input": 8,
+      "output": 697
+    },
+    "timed_out": false
   }
 ]

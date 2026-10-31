@@ -19,7 +19,7 @@ python3 -m harness.cli demo --tasks T1-01,T3-01 --rungs G0,G1
 | G3 (automated review) | stub, blocked on the pinned prompt |
 | G4 (human review) | returns `needs_human`; the timed review CLI is not built |
 | Hidden oracle, applied out of band | working, `--noconftest` so a repo conftest cannot disable it |
-| Leak check, tamper check | working |
+| Leak check, tamper check | working, with controls (`harness selfcheck`, 4/4) |
 | Ledger, per-run artifacts | working |
 
 ## Two things this caught before any model spend
@@ -58,6 +58,12 @@ Measured on `T2-S2` (a suite-blind `PAGER` defect):
 
 That is the M1 acceptance criterion: the harness's G2 reproduces the cloud
 gate's baseline and its detection on a defect we know the cloud gate sees.
+
+## Fail-closed
+
+A worker that needs the sandbox refuses to run without it, and every run
+records a probe proving the mount namespace was correct. See
+[docs/07-containment-controls.md](../docs/07-containment-controls.md).
 
 ## Not yet true
 

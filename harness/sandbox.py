@@ -55,3 +55,27 @@ def wrap(cmd: list[str], worktree: pathlib.Path, home: pathlib.Path) -> list[str
             "--setenv", "HOME", "/home/agent",
             "--setenv", "PATH", "/opencode-bin/bin:/usr/bin:/bin",
             "--", *cmd]
+
+
+def probe(worktree: pathlib.Path, home: pathlib.Path) -> dict:
+    """Per-run evidence that the mount namespace is what we think it is.
+
+    A one-off manual check is not enough: this runs before every run and its
+    result is recorded, so a misconfigured sandbox cannot pass as clean.
+    """
+    if not available():
+        return {"ran": False, "ok": False, "detail": "sandbox unavailable"}
+    real = pathlib.Path.home()
+    script = (
+        "pwd; "
+        f"if [ -e '{real}' ]; then echo HOSTHOME_VISIBLE; else echo HOSTHOME_ABSENT; fi; "
+        "if [ -d /work/src/click ]; then echo WORKTREE_OK; else echo WORKTREE_MISSING; fi"
+    )
+    try:
+        r = subprocess.run(wrap(["/bin/sh", "-c", script], worktree, home),
+                           capture_output=True, text=True, timeout=120)
+    except Exception as exc:
+        return {"ran": True, "ok": False, "detail": f"{type(exc).__name__}: {exc}"}
+    out = (r.stdout or "") + (r.stderr or "")
+    ok = ("HOSTHOME_ABSENT" in out and "WORKTREE_OK" in out and "/work" in out)
+    return {"ran": True, "ok": ok, "detail": out.strip()[:400]}
