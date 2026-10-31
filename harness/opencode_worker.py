@@ -19,6 +19,9 @@ Requested change:
 
 
 class OpenCode(Worker):
+    writes_log = True
+    requires_sandbox = True
+
     def __init__(self, model: str, timeout: int | None = None):
         self.model = model
         self.timeout = timeout or config.TIMEBOX_SECONDS
@@ -32,12 +35,11 @@ class OpenCode(Worker):
         # wherever that service started, and the worktree is ignored entirely.
         cmd = ["opencode", "run", "--standalone", "--model", self.model, "--auto",
                "--format", "json", prompt]
-        if sandbox.available():
-            home = sandbox.home_for(worktree.parent.name)
-            cmd = sandbox.wrap(["/opencode-bin/bin/opencode", *cmd[1:]], worktree, home)
-            self.sandboxed = True
-        else:
-            self.sandboxed = False
+        if not sandbox.available():
+            raise RuntimeError("opencode requires the sandbox; refusing to run unsandboxed")
+        home = sandbox.home_for(worktree.parent.name)
+        cmd = sandbox.wrap(["/opencode-bin/bin/opencode", *cmd[1:]], worktree, home)
+        self.sandboxed = True
         t0 = time.time()
         timed_out = False
         try:

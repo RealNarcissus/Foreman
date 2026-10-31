@@ -24,6 +24,7 @@ H2_G0_claude_haiku_5_5_r0_20261031T172723Z,H2,3,feature,G0,opencode:claude-haiku
 H2_G0_claude_haiku_5_5_r1_20261031T172801Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,27.78
 H2_G0_claude_haiku_5_5_r2_20261031T172829Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,32.64
 H2_G0_claude_haiku_5_5_r3_20261031T172901Z,H2,3,feature,G0,opencode:claude-haiku-5-5,True,True,True,True,False,False,False,28.81
+<<<<<<< current
 H1_G0_mimo_v2_6_flash_r0_20261031T172930Z,H1,1,logic,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,254.47
 H1_G0_mimo_v2_6_flash_r1_20261031T173345Z,H1,1,logic,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,156.95
 H1_G0_mimo_v2_6_flash_r2_20261031T173622Z,H1,1,logic,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,166.74
@@ -32,3 +33,12 @@ H2_G0_mimo_v2_6_flash_r0_20261031T174212Z,H2,3,feature,G0,opencode:mimo-v2.6-fla
 H2_G0_mimo_v2_6_flash_r1_20261031T174401Z,H2,3,feature,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,428.78
 H2_G0_mimo_v2_6_flash_r2_20261031T175109Z,H2,3,feature,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,92.62
 H2_G0_mimo_v2_6_flash_r3_20261031T175242Z,H2,3,feature,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,145.13
+||||||| base
+=======
+T1-01_G0_deepseek_v4_1_flash_r0_20261031T174859Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,48.91
+>>>>>>> incoming
+T1-01_G0_deepseek_v4_1_flash_r0_20261031T194523Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,26.44
+H1_G0_deepseek_v4_1_flash_r0_20261031T194603Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,124.09
+H1_G0_deepseek_v4_1_flash_r1_20261031T194808Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,78.66
+H1_G0_deepseek_v4_1_flash_r2_20261031T194928Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,89.25
+H1_G0_deepseek_v4_1_flash_r3_20261031T195058Z,H1,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,40.9
