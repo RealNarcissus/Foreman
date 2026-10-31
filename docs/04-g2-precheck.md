@@ -130,6 +130,30 @@ Two consequences:
 1. **G2 is C2.** The rung is defined as (threat model = local + remote, suite = default, severity policy as configured). Five rungs, 180 runs. C1's blindness becomes a primary finding rather than a caveat: "the gate as shipped cannot see local-source vulnerabilities, and enabling local sources surfaced two findings in a library with this much scrutiny behind it."
 2. **Those two alerts need adjudication, and that is already the study in miniature.** click is a file-opening library; opening a caller-supplied path is its documented purpose. An alert that is technically true but semantically by-design is exactly the false positive that gate yield must count. Adjudicate both before the pilot and record the verdict, because they are the first real data point for RQ3.
 
+### Adjudication of the three pre-existing alerts
+
+All five open alerts inspected on 31 Oct 2026. The two planted probes are true positives by construction; the three pre-existing ones are not what the gate implies they are.
+
+| # | Rule | Location | What the code does | Verdict |
+| --- | --- | --- | --- | --- |
+| 1 | `py/clear-text-logging-sensitive-data` | `utils.py:345` `file.write(out)` | `echo()` writing to an output stream, which is the documented purpose of the function | **False positive** (semantic) |
+| 4 | `py/path-injection` | `utils.py:598` `os.path.exists(path)` | `_detect_program_name()`; `path` defaults to `sys.argv[0]`, and the only call site (`core.py:1544`) passes nothing | **False positive** (benign) |
+| 5 | `py/path-injection` | `utils.py:599` `os.path.exists(f"{path}.exe")` | The adjacent branch of the same expression, on Windows | **False positive**, duplicate of 4 |
+
+Reasoning for 4 and 5: an existence check on the path of the script that is already running reveals nothing to an attacker, who by controlling `argv[0]` has already chosen the invocation. The dataflow is real — `sys.argv[0]` is a `commandargs` source and `os.path.exists` is a sink — but the security consequence is nil. This is a genuine dataflow finding and a meaningless defect.
+
+**Three numbers matter here, and they are not the same number:**
+
+| Unit | Count | How it is counted |
+| --- | --- | --- |
+| Alerts | 5 | What the API returns |
+| Distinct findings | 4 | Alerts 4 and 5 are one expression |
+| Actionable defects | 2 | The two planted probes |
+
+RQ3 must be phrased in terms of the third. Gate yield computed on alert counts would credit this gate with five findings when it produced two, and would also charge it with three failures it did not really commit — the FPs are cheap to dismiss, not costly to fix.
+
+One further point for the writeup: **the default configuration reported exactly one of these three, and it was the one least connected to local input.** So C1's "clean" baseline was not quiet, it was under-instrumented.
+
 ### Two discrepancies to record honestly
 
 - **The API readback said `threat_model: "remote"` immediately after the change was applied**, while the next analysis clearly behaved as though local sources were on. The readback and the behaviour disagree. Record the effective configuration from the UI and from behaviour, not just the API field, and note the discrepancy.
@@ -176,4 +200,5 @@ Keep the probe repository public, one branch per defect. The alerts page and the
 | C2 validated | controls A and B fire, locally and on GitHub |
 | Rung definition | **G2 = C2** (local + remote threat model, default suite) |
 | Ladder | five rungs, 180 pilot runs |
-| Pending | adjudicate 2 path-injection alerts; run D1-D5 |
+| Pre-existing alerts | adjudicated: 3 of 3 false positives; 5 alerts = 4 findings = 2 actionable defects |
+| Pending | run D1-D5 under C2 |
