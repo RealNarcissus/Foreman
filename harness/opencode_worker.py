@@ -3,7 +3,7 @@ import json
 import subprocess
 import time
 
-from . import config
+from . import config, sandbox
 from .workers import Worker
 
 PROMPT = """You are working inside a Python repository. Make the requested change.
@@ -32,6 +32,12 @@ class OpenCode(Worker):
         # wherever that service started, and the worktree is ignored entirely.
         cmd = ["opencode", "run", "--standalone", "--model", self.model, "--auto",
                "--format", "json", prompt]
+        if sandbox.available():
+            home = sandbox.home_for(worktree.parent.name)
+            cmd = sandbox.wrap(["/opencode-bin/bin/opencode", *cmd[1:]], worktree, home)
+            self.sandboxed = True
+        else:
+            self.sandboxed = False
         t0 = time.time()
         timed_out = False
         try:

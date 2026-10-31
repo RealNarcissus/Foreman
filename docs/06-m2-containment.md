@@ -53,3 +53,48 @@ needed it.
 The smoke test must be re-run from scratch before any worker is selected. Nothing
 from the void run may be cited — including DeepSeek's apparent 100% ceiling, which
 was not one.
+
+---
+
+## Sandbox: filesystem isolation works, credentials do not cross
+
+`bwrap` is available (0.13.1) and the mount namespace behaves correctly:
+
+```
+ls /home/charleton/Desktop   ->  No such file or directory
+pwd                          ->  /work
+HOME                         ->  /home/agent
+```
+
+The project directory is not mounted, so an oracle is unreachable rather than
+merely detectable. That part is solved.
+
+**Authentication fails inside the sandbox**, and only there:
+
+| Context | Result |
+| --- | --- |
+| Host, `--standalone` | works |
+| Sandbox, copied `auth.json` + `account.json` | `401 api_key_expired` |
+| Sandbox, DBus session bus bound | `401 api_key_expired` |
+| Sandbox, `OPENCODE_API_KEY` passed through | `401 api_key_expired` |
+
+So the working credential is not in `auth.json`, not in `account.json`, not on
+the session bus and not in the process environment. The remaining candidate is
+the 306 MB `opencode.db` in the host state directory, which the sandbox does not
+have.
+
+Binding that directory read-write would fix authentication and reintroduce a
+leak: the database holds transcripts of every prior session, including the
+contaminated runs that quoted task text and oracles.
+
+**Therefore M2 is blocked, not finished.** The options, in order of cleanliness:
+
+1. **Issue a fresh OpenCode Go API key for the harness and pass it in.** The
+   sandbox then needs no host state at all, which is also the only option that
+   makes the credential auditable. Recommended.
+2. Copy a sanitised state directory per run. 306 MB per run, and it must be
+   scrubbed of transcripts first.
+3. Accept host-state binding and treat the sandbox as filesystem-only isolation.
+   Not recommended: it defeats the point.
+
+Until one is chosen, no worker selection can be made and no sweep can run.
