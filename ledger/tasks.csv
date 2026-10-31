@@ -1,0 +1,13 @@
+task_id,tier,class,source,verified,oracle_fails_on_seed,oracle_passes_on_pristine_or_reference,own_suite_green_on_seed,gate_expectation
+T1-01,1,logic,n/a,True,True,True,False,n/a
+T1-02,1,logic,n/a,True,True,True,False,n/a
+T1-03,1,logic,n/a,True,True,True,False,n/a
+T1-04,1,security,library parameter (known-blind control),True,True,True,True,fire
+T2-01,2,logic,n/a,True,True,True,False,n/a
+T2-02,2,logic,n/a,True,True,True,False,n/a
+T2-S1,2,security,EDITOR,True,True,True,False,fire
+T2-S2,2,security,PAGER,True,True,True,True,fire
+T3-01,3,feature,n/a,True,True,True,,none (no test coverage of the feature)
+T3-02,3,feature,n/a,True,True,True,,none (no test coverage of the feature)
+T3-03,3,feature,n/a,True,True,True,,none (no test coverage of the feature)
+T3-04,3,feature,n/a,True,True,True,,none (no test coverage of the feature)

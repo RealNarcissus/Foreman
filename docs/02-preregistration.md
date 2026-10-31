@@ -66,7 +66,9 @@ Cumulative. G0 none; G1 required CI; G2 required static analysis (CodeQL); G3 re
 
 ### 3.3 Pilot composition
 
-12 tasks, balanced 4/4/4 across tiers, of which **3 are security-class** (2 in tier 2, 1 in tier 1). Tier is balanced; the logic/security label is not crossed, because 12 tasks cannot support a balanced 2x2 and pretending otherwise would produce uninterpretable cells.
+12 tasks, balanced 4/4/4 across tiers, of which **3 are security-class**: two in tier 2 (environment-sourced, `EDITOR` and `PAGER`) and one in tier 1 (a library-parameter flow, kept as a **known-blind control**). Tier is balanced; the logic/security label is not crossed, because 12 tasks cannot support a balanced 2x2 and pretending otherwise would produce uninterpretable cells.
+
+All 12 are authored and verified in `tasks/` — each oracle fails on the seeded state and passes on the pristine or reference state (`tasks/verification.json`). Three tasks leave click's own suite green and are therefore invisible to G1: `T1-04` (by design), `T2-S2` (a genuine gap in click's tests), and the four tier-3 features (no coverage exists).
 
 ### 3.4 Authoring budget
 
