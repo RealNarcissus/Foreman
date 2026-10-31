@@ -65,15 +65,78 @@ Attempted before concluding: installing the missing `python-all` library pack, r
 
 G2 is not "CodeQL, the tool". It is **GitHub's default code-scanning configuration for a public repository**, which is what a real gate applies. Running it anywhere else is a proxy, and this proxy has now demonstrably failed to validate itself.
 
-Procedure:
+Good news for the odds, verified locally against the 43-rule default suite: `py/command-line-injection`, `py/path-injection`, `py/code-injection` and `py/unsafe-deserialization` are all in it. The default configuration is sufficient; there is no need to select the extended suite and no need to introduce that as a confound.
 
-1. Fork `pallets/click` to a public repository at tag `8.5.0`. Public is required: CodeQL is free for public repositories, not private ones.
-2. Settings, Code security, Code scanning, enable **Default** setup for Python. Wait for the first analysis.
-3. Record the alert count by rule id. This is the baseline.
-4. On a branch, plant one defect at a time from the table below, push, and record which rule fires.
-5. Keep the fork's alerts page as the artifact.
+Cost: CodeQL default setup on public repositories does not consume Actions minutes. The only cost is wall clock, roughly 30-60 minutes including analysis waits.
 
-Cost: no CodeQL minutes are consumed for public repositories under default setup, so the only cost is wall clock.
+### Runbook
+
+**Step 1 — probe repository.** Do not fork: a fork carries the upstream's settings and tags may not come along.
+
+```sh
+git clone --branch 8.5.0 --depth 1 https://github.com/pallets/click /tmp/click-probe
+cd /tmp/click-probe && rm -rf .git && git init -b main
+git add -A && git commit -m "click 8.5.0 snapshot"
+gh repo create click-probe --public --source=. --remote=origin --push
+```
+
+**Step 2 — enable default setup.**
+
+```sh
+gh api -X PATCH repos/OWNER/click-probe/code-scanning/default-setup \
+  -f state=configured -f query_suite=default
+```
+
+Or in the UI: Settings, Code security, Code scanning, CodeQL analysis, Set up, Default. The first analysis takes a few minutes.
+
+**Step 3 — baseline.**
+
+```sh
+gh api "repos/OWNER/click-probe/code-scanning/alerts?state=open&per_page=100" \
+  | jq -r '.[].rule.id' | sort | uniq -c | sort -rn
+```
+
+Record it. This is the noise floor; only alerts beyond it are attributable to a planted defect.
+
+**Step 4 — two positive controls, before any defect.** The second one matters more than the first, because the click defects in the table depend on environment variables rather than argv.
+
+```sh
+# control A: argv-sourced command construction
+cat > src/click/_probe_a.py <<'EOF'
+import os, sys
+def run():
+    os.system("echo " + sys.argv[1])
+run()
+EOF
+
+# control B: environment-sourced command construction (the class D1/D2 rely on)
+cat > src/click/_probe_b.py <<'EOF'
+import os, subprocess
+def run():
+    editor = os.environ.get("EDITOR", "vi")
+    subprocess.Popen(f"{editor} file.txt", shell=True)
+run()
+EOF
+git add -A && git commit -m "probe: positive controls" && git push
+```
+
+Then wait for analysis and re-read the alerts. Interpretation is strict:
+
+| Result | Meaning | Action |
+| --- | --- | --- |
+| Both controls alert | Configuration is sound | Proceed to step 5 |
+| Only A alerts | Environment variables are not modelled as sources | D1/D2 cannot fire; click has no argv entry point, so G2 likely cannot fire on realistic defects. Expect to drop G2 |
+| Neither alerts | Configuration invalid, as it was locally | **Stop.** Do not interpret any defect result |
+
+**Step 5 — the five defects**, one commit each, reverting between them so the alert delta is attributable:
+
+```sh
+# for each defect: apply, then
+git add -A && git commit -m "probe: D1" && git push
+# wait for the analysis to finish, re-read alerts, record the delta
+```
+
+**Step 6 — keep the artifact.** Leave the probe repository public and leave one branch per defect (`probe-d1` ... `probe-d5`). The alerts page and the defect table are released with the replication package; a publicity objection is not a problem here, the defects are synthetic.
 
 ### Defect table
 
@@ -106,6 +169,7 @@ Two smaller findings to carry into the design:
 
 ## 6. Open
 
-- [ ] Version-matched CLI retry, or abandon local CodeQL in favour of §4
-- [ ] §4 run on a public fork; baseline and defect table recorded
+- [ ] Step 4 controls run: record which of A and B fires
+- [ ] Step 5 defect table completed
 - [ ] Rung count decided from §5
+- [ ] Version-matched CLI retry only if step 4 fails and GitHub is somehow unavailable (it should not be)

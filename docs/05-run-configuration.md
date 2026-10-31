@@ -31,7 +31,7 @@ So the rung is a **configuration record**: reviewer model id, prompt, blocking t
 ### Reviewer configuration to pin
 
 - **Model: Claude Haiku 5.5** (`opencode-go/claude-haiku-5-5`), deliberately a different vendor from the DeepSeek worker so the two do not share blind spots. Candidate volume is one to three calls per run, roughly 200-500 total, against an allowance of ~19,000 requests a month. Cost is not a consideration here; independence is.
-- Alternative if Anthropic access is unavailable: GPT 6 Luna (`opencode-go/gpt-6-luna`).
+- **If Haiku wins the worker smoke test (§3), the reviewer becomes GPT 6 Luna** (`opencode-go/gpt-6-luna`). A model does not review its own work, and that is the whole rule.
 - The prompt, committed and hashed before the pilot. This is what makes gate yield attributable.
 - Blocking rule as an explicit threshold: block if any comment is tagged severity >= major.
 - The reviewer never sees the hidden oracle.
@@ -56,11 +56,11 @@ It has the largest allowance on the plan by a wide margin, the best privacy prof
 **Two prerequisites**, both easy to miss:
 
 - **Workspace owner or admin must set Regions to `Global`** in Settings › Privacy. Without it the model is blocked, and the failure surfaces as a run error rather than a configuration error.
-- **Schedule off-peak.** Peak is 01:00-04:00 and 06:00-10:00 UTC, Monday to Friday; everything else, including weekends, is off-peak at half price. This doubles the effective allowance and costs nothing but cron discipline.
+- **Off-peak scheduling is not a planning constraint.** Peak is 01:00-04:00 and 06:00-10:00 UTC on weekdays at double the price, but the pilot fits inside the allowance either way. Revisit only if usage limits actually start biting, in which case moving the run window is the cheapest lever available.
 
 ### Cost, estimated rather than assumed
 
-A 30-minute repository-level run plausibly consumes something like 50k new input, 20k output and 500k cached-read tokens. At off-peak prices that is roughly **$0.02 per run**, so 180 runs is **$4-8**, against a $100 allowance and a $20 per-five-hour window cap. Budget is therefore **not** the binding constraint on this plan; capability and calendar time are.
+A 30-minute repository-level run plausibly consumes something like 50k new input, 20k output and 500k cached-read tokens. At off-peak prices that is roughly **$0.02 per run**, so 180 runs is **$4-8** against a $100 allowance, and at peak prices roughly double that. Budget is therefore **not** the binding constraint on this plan; capability and calendar time are.
 
 That figure is an estimate with stated assumptions. The harness should not rely on it: every OpenCode Go response reports how much the request counted as `opencode.allowance`, so the runner records actual spend per run. RQ5's cost metric then becomes measured rather than modelled, which is a small but real improvement to the study.
 
@@ -80,8 +80,9 @@ The $10 plan keeps DeepSeek in budget but does not tell us it can solve click ta
 - 2 holdout tasks x 4 attempts at G0, per candidate. **24 runs total.**
 - Candidates, chosen to span the capacity/capability tradeoff:
   - DeepSeek V4.1 Flash — capacity and privacy, capability unproven
-  - Kimi K2.7 Code — plausibly the strongest coding model that still fits on Go at ~6,750 requests, which covers only ~85-170 agent runs at 40-80 requests each
+  - Claude Haiku 5.5 — likely the strongest of the three at code work, and ~19,000 requests a month comfortably covers 180 runs at 40-80 requests each
   - MiMo-V2.6-Flash — capacity, capability unproven
+- If Claude Haiku 5.5 wins, the G3 reviewer moves to GPT 6 Luna (§1).
 - Holdout tasks only, so the 12 pilot tasks stay unseen and the choice does not flatter the model on the tasks it is measured against.
 
 ### Selection rule, preregistered
@@ -129,8 +130,8 @@ Anything not in this file did not happen.
 
 ## 6. Open
 
-- [ ] `Global` region enabled for DeepSeek in workspace privacy settings
+- [x] `Global` region enabled for DeepSeek in workspace privacy settings
 - [ ] `opencode` headless invocation verified; version pinned
 - [ ] Reviewer prompt written, hashed, committed before the pilot
 - [ ] Smoke test on holdout tasks; worker model recorded against the selection rule
-- [ ] Pacing: off-peak window chosen; 180 runs spread inside the 5-hour and weekly caps
+- [ ] Pacing: 180 runs inside the 5-hour and weekly caps (peak window irrelevant unless limits bite)
