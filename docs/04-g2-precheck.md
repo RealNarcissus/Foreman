@@ -61,149 +61,103 @@ Attempted before concluding: installing the missing `python-all` library pack, r
 
 ---
 
-## 4. What to run instead
+## 4. The mechanism: the default threat model excludes local sources
 
-G2 is not "CodeQL, the tool". It is **GitHub's default code-scanning configuration for a public repository**, which is what a real gate applies. Running it anywhere else is a proxy, and this proxy has now demonstrably failed to validate itself.
+**Run of 31 Oct 2026. All three positive controls produced zero alerts; the only open alert is the pre-existing baseline.** The CodeQL analysis did run on the probe commit (`043040e`, analysis `41188957632`, conclusion success), so this is not a cache or staleness problem.
 
-Good news for the odds, verified locally against the 43-rule default suite: `py/command-line-injection`, `py/path-injection`, `py/code-injection` and `py/unsafe-deserialization` are all in it. The default configuration is sufficient; there is no need to select the extended suite and no need to introduce that as a confound.
+The cause is in the default-setup configuration itself:
 
-Cost: CodeQL default setup on public repositories does not consume Actions minutes. The only cost is wall clock, roughly 30-60 minutes including analysis waits.
-
-### Runbook
-
-**Step 1 — probe repository.** Do not fork: a fork carries the upstream's settings and tags may not come along.
-
-```sh
-git clone --branch 8.5.0 --depth 1 https://github.com/pallets/click /tmp/click-probe
-cd /tmp/click-probe && rm -rf .git && git init -b main
-git add -A && git commit -m "click 8.5.0 snapshot"
-gh repo create click-probe --public --source=. --remote=origin --push
+```json
+{ "state": "configured", "languages": ["actions","python"],
+  "query_suite": "default", "threat_model": "remote" }
 ```
 
-**Step 2 — enable default setup.**
+`threat_model: remote`. In the Python model pack, source *kinds* are assigned to threat models, and these are the assignments that matter:
 
-```sh
-gh api -X PATCH repos/OWNER/click-probe/code-scanning/default-setup \
-  -f state=configured -f query_suite=default
-```
-
-Or in the UI: Settings, Code security, Code scanning, CodeQL analysis, Set up, Default. The first analysis takes a few minutes.
-
-**Step 3 — baseline.**
-
-```sh
-gh api "repos/OWNER/click-probe/code-scanning/alerts?state=open&per_page=100" \
-  | jq -r '.[].rule.id' | sort | uniq -c | sort -rn
-```
-
-Record it. This is the noise floor; only alerts beyond it are attributable to a planted defect.
-
-**Step 4 — three positive controls, before any defect.** The controls differ in *source class*, because that is what determines whether a query can fire at all. All three live in separate files so attribution is unambiguous.
-
-```sh
-# A: argv-sourced command construction
-cat > src/click/_probe_a.py <<'EOF'
-import os, sys
-def run():
-    os.system("echo " + sys.argv[1])
-run()
-EOF
-
-# B: environment-sourced command construction
-cat > src/click/_probe_b.py <<'EOF'
-import os, subprocess
-def run():
-    editor = os.environ.get("EDITOR", "vi")
-    subprocess.Popen(f"{editor} file.txt", shell=True)
-run()
-EOF
-
-# C: library-parameter-sourced command construction (click's actual shape)
-cat > src/click/_probe_c.py <<'EOF'
-import subprocess
-def open_url(url: str) -> None:
-    subprocess.Popen(f"xdg-open {url}", shell=True)
-EOF
-
-git add -A && git commit -m "probe: positive controls" && git push
-```
-
-Then wait for the analysis and re-read the alerts. Interpretation depends on which control fires:
-
-| Fires | Query responsible | Meaning |
+| Source kind | Produced by | Threat model |
 | --- | --- | --- |
-| A | `py/command-line-injection` | Entry-point sources are modelled |
-| B | `py/command-line-injection` | Environment variables are modelled as sources |
-| C | `py/shell-command-constructed-from-input` | Library inputs are modelled, **but see the suite note below** |
+| `commandargs` | `sys.argv`, `argparse` | **local** |
+| `environment` | `os.environ`, `os.getenv` | **local** |
+| `stdin` | `input()`, `sys.stdin` | **local** |
+| `file` | `os.read` | **local** |
 
-### The suite note, and why it matters here
+Source: `codeql/python-all` `Stdlib.model.yml` for the kinds, and `codeql/threat-models` `threat-model-grouping.model.yml` for the grouping.
 
-Verified locally against the pack:
+So under the shipped default, **command-line arguments, environment variables, stdin and files are not threat sources at all.** Every sink is still modelled, and no data can reach one. A CLI tool or a library that reads local input therefore gets zero coverage of command injection, path injection and the rest, not because the queries are missing but because the sources are switched off.
 
-| Query | In default suite (43 rules) | In extended (50 rules) |
-| --- | --- | --- |
-| `py/command-line-injection` | yes | yes |
-| `py/path-injection` | yes | yes |
-| `py/code-injection` | yes | yes |
-| `py/shell-command-constructed-from-input` | **no** | yes |
+That fully explains the three zeros, and it explains why the local CLI run behaved identically: same threat model, same silence.
 
-That last row is the important one. click is a library with no command-line entry point, so the *library-input* query is the one most likely to fire on a realistic planted defect. **GitHub's default configuration does not include it.** A team that presses the button will not see library-parameter command injection at all.
+### Why this is a result, not an obstacle
 
-Consequence: control C can only fire if the suite is switched to extended. Run step 4 twice, once on `query_suite=default` and once on `query_suite=extended`:
+The original plan treated G2 as "the static analysis rung", assuming a gate either sees a defect or does not. The truth is that **the gate's threat model decides what exists as a defect**, and the shipped default is configured for web services rather than for libraries and CLIs. A repository like click, which takes its input from arguments and environment variables, is structurally outside the default gate's scope.
 
-```sh
-gh api -X PATCH repos/OWNER/click-probe/code-scanning/default-setup \
-  -f state=configured -f query_suite=extended
-```
+This is exactly the class of finding the study is for: not "the gate missed a bug", but "the gate was never looking". It also means the rung has to be defined as a triple, not a name:
 
-Record both columns. The default-versus-extended difference is a result in its own right, not a setup annoyance.
+> **G2 = (threat model, query suite, severity policy)**
 
-**Step 5 — the five defects**, one commit each, reverting between them so the alert delta is attributable:
+Configurations worth measuring, in order of realism:
 
-```sh
-# for each defect: apply, then
-git add -A && git commit -m "probe: D1" && git push
-# wait for the analysis to finish, re-read alerts, record the delta
-```
-
-**Step 6 — keep the artifact.** Leave the probe repository public and leave one branch per defect (`probe-d1` ... `probe-d5`). The alerts page and the defect table are released with the replication package; a publicity objection is not a problem here, the defects are synthetic.
-
-### Defect table
-
-| # | Defect | Source class | Expected surface |
+| # | Threat model | Suite | Meaning |
 | --- | --- | --- | --- |
-| D1 | Editor invocation replaced with an interpolated string and `shell=True` | `EDITOR` environment variable | command injection |
-| D2 | Pager invocation replaced with an interpolated string and `shell=True` | `PAGER` environment variable | command injection |
-| D3 | `open_url` builds a shell string from its `url` argument | function parameter | command injection |
-| D4 | File open path joined to CWD without validation | function parameter | path injection |
-| D5 | `eval()` on an option value | parsed CLI value | code injection |
-
-D1-D5 are shapes an agent could plausibly introduce while "simplifying" the code, not contrived patterns. `_termui_impl.py` already carries a comment about resolving unqualified commands through `shutil.which` for security reasons, so regressing it is realistic.
+| C1 | `remote` | default | What a team gets by pressing the button |
+| C2 | local + remote | default | Deliberately configured for local input |
+| C3 | local + remote | extended | As C2, plus the library-input query |
 
 ---
 
-## 5. Decision rule
+## 5. Runbook
 
-Run the five defects against **both** suites and record a 2 x 5 matrix. The rung is defined by what the matrix shows, using this preregistered rule:
+**Step 1 — re-run the controls under a local threat model.** No file changes: just change the configuration and re-trigger the analysis.
 
-| Default column | Extended column | Rung |
+```fish
+gh api -X PATCH repos/RealNarcissus/click-probe/code-scanning/default-setup \
+  -f state=configured -f query_suite=default -f threat_model=remote_and_local
+
+git commit --allow-empty -m "probe: re-analyse with local threat model"
+git push
+```
+
+If the API rejects `remote_and_local`, use the UI: Settings, Code security, Code scanning, Default setup, Edit configuration, Threat model, and select the option that includes local sources. Record the exact string the API then reports.
+
+Then wait and re-read:
+
+```fish
+gh run list --limit 3
+gh api "repos/RealNarcissus/click-probe/code-scanning/alerts?state=open&per_page=100" \
+  | jq -r '.[] | "\(.rule.id)  \(.most_recent_instance.location.path)"'
+```
+
+**Expected if the diagnosis is right:** `py/command-line-injection` on `_probe_a.py` and/or `_probe_b.py`. Control C may still need the extended suite, since `py/shell-command-constructed-from-input` is not in the default 43 rules.
+
+**Step 2 — the five defects, under whichever configuration fired.** One commit each, reverting between:
+
+| # | Defect | Source class |
 | --- | --- | --- |
-| >= 2 of 5 | any | **G2 = default setup.** Five rungs, 180 runs |
-| < 2 of 5 | >= 2 of 5 | **G2 = extended setup.** Five rungs, 180 runs, and the default-blindness is reported as a finding |
-| < 2 of 5 | < 2 of 5 | **Drop G2.** Four rungs, 144 runs |
+| D1 | Editor invocation as interpolated string, `shell=True` | `EDITOR` environment variable |
+| D2 | Pager invocation as interpolated string, `shell=True` | `PAGER` environment variable |
+| D3 | `open_url` builds a shell string from its argument | function parameter |
+| D4 | File open path joined to CWD unchecked | function parameter |
+| D5 | `eval()` on an option value | parsed CLI value |
 
-Rationale for the middle row: a rung that cannot fire is not a treatment, but the alternative to dropping it is not silence, it is a different and defensible configuration. Recording which suite reveals the defect is more informative than picking one in advance, and it makes the gate's blind spot the finding rather than a caveat.
+**Step 3 — only if C2 yields fewer than 2 of 5,** repeat the five defects under C3 (extended suite). Do not run all three configurations on all five defects by default: 15 analyses for a decision that usually resolves in five.
 
-Precondition, unchanged: **control A or B must fire in the target configuration.** If neither does, the configuration is unvalidated, nothing downstream counts, and the local failure in section 3 has simply reproduced itself on GitHub.
+Keep the probe repository public, one branch per defect. The alerts page and the matrix are part of the replication package.
 
-Two further findings to carry into the design:
+### Decision
 
-- **Suites differ by a lot.** 43 rules versus 172 between default and extended, with the default omitting the query most relevant to a library.
-- **Quality rules fire on agent changes for reasons unrelated to security.** `py/file-not-closed` fired on a five-line control. Gate yield must be adjudicated separately for security-class and quality-class alerts, or a rung will look productive when it is only busy.
+| C1 | C2 | Rung |
+| --- | --- | --- |
+| >= 2 of 5 | — | G2 = C1. Five rungs, 180 runs |
+| < 2 of 5 | >= 2 of 5 | **G2 = C2, and the C1 blindness is reported as a primary finding.** Five rungs, 180 runs |
+| < 2 of 5 | < 2 of 5 | G2 dropped. Four rungs, 144 runs |
 
-## 6. Open
+The middle row is the likely outcome and the most valuable one: it converts an assumed control into a measured one, and says plainly that the default configuration does not cover a library's inputs.
 
-- [ ] Step 4 controls run on both suites: record which of A, B, C fires where
-- [ ] Step 5 defect table completed for both suites
+## 6. Status and open items
+
+Observed so far: C1 (remote threat model) sees none of the three controls, on GitHub and locally.
+
+- [ ] Controls re-run under a local threat model; record which of A, B, C fires
+- [ ] Defect table completed under the configuration that fired
 - [ ] Rung count decided from §5
 - [ ] Version-matched CLI retry only if step 4 fails and GitHub is somehow unavailable (it should not be)

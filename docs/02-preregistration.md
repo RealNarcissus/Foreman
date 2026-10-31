@@ -90,15 +90,25 @@ Run the procedure in [04-g2-precheck.md](04-g2-precheck.md) §4: GitHub default 
 
 **Precondition:** a positive control must fire. If a canonical `os.system("echo " + sys.argv[1])` sample produces no alert, the configuration is unvalidated and nothing downstream counts. A local CLI run already failed this test; see [04](04-g2-precheck.md) §3.
 
-**Then:** the five defects run against both the default and extended query suites, giving a 2 x 5 matrix, and the rung follows from the matrix:
+**Then:** the five defects run under the announced configurations, and the rung follows from the result. The rung is a triple, not a name:
 
-| Default | Extended | Rung |
+> **G2 = (threat model, query suite, severity policy)**
+
+This matters more than expected. A 31 Oct run showed that GitHub's shipped default is `threat_model: remote`, and that `commandargs`, `environment`, `stdin` and `file` are all classified as **local** sources in the Python model pack. Under the default configuration they are not sources at all, so a library or CLI that reads local input has no coverage of command injection or path injection regardless of which queries are installed. All three positive controls returned zero.
+
+| Configuration | Threat model | Suite | Meaning |
+| --- | --- | --- | --- |
+| C1 | remote | default | What a team gets by pressing the button |
+| C2 | local + remote | default | Deliberately configured for local input |
+| C3 | local + remote | extended | As C2 plus the library-input query |
+
+| C1 | C2 | Rung |
 | --- | --- | --- |
-| >= 2 of 5 | any | G2 = default setup, five rungs, 180 runs |
-| < 2 of 5 | >= 2 of 5 | G2 = extended setup, five rungs, 180 runs, default-blindness reported |
-| < 2 of 5 | < 2 of 5 | G2 dropped, four rungs, 144 runs |
+| >= 2 of 5 | — | G2 = C1, five rungs |
+| < 2 of 5 | >= 2 of 5 | G2 = C2, five rungs, and C1's blindness is a primary finding |
+| < 2 of 5 | < 2 of 5 | G2 dropped, four rungs |
 
-The middle row exists because the two suites are not equivalent in a way that matters here: `py/shell-command-constructed-from-input`, the library-input query most relevant to a library like click, is **not** in the default 43-rule suite. Which suite catches which defect is a result, not a setup detail. The full matrix is released either way.
+The full matrix is released either way. The details and evidence are in [04-g2-precheck.md](04-g2-precheck.md).
 
 ---
 
