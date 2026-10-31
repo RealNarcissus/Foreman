@@ -1,0 +1,8 @@
+{
+  "id": "G2",
+  "label": "CI + static analysis",
+  "requires": ["ci", "static_analysis"],
+  "auto_merge": true,
+  "config_ref": "configs/g2/c2-local-in-scope.json",
+  "description": "G1 plus CodeQL with the frozen configuration: remote and local threat model, default query suite. Fails on a new security alert above baseline."
+}

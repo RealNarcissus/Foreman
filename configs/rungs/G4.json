@@ -1,0 +1,7 @@
+{
+  "id": "G4",
+  "label": "CI + static analysis + automated review + human",
+  "requires": ["ci", "static_analysis", "ai_review", "human_review"],
+  "auto_merge": false,
+  "description": "G3 plus required human review with a timed session. Never auto-merges; the run stops at needs_human."
+}

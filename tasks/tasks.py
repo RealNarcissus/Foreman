@@ -144,10 +144,10 @@ def test_editor_does_not_use_shell(monkeypatch):
     ),
     dict(
         id="T2-S2", tier=2, cls="security", source="PAGER",
-        spec="The pager command must run as an argument vector; parameters from PAGER must never be interpreted by a shell.",
+        spec="The pager must never be run through a shell, whatever PAGER contains.",
         seed=dict(file="src/click/_termui_impl.py", fn="def _tempfilepager(",
                   old="        subprocess.call([str(cmd_path), *cmd_params, f.name])",
-                  new="        subprocess.call(f\"{cmd_path} {' '.join(cmd_params)} {f.name}\", shell=True)"),
+                  new="        pager = os.environ.get(\"PAGER\", \"more\")\n        subprocess.call(f\"{pager} {f.name}\", shell=True)"),
         oracle="""
 import subprocess
 from click._termui_impl import _tempfilepager

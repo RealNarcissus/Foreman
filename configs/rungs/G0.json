@@ -1,0 +1,7 @@
+{
+  "id": "G0",
+  "label": "no gate",
+  "requires": [],
+  "auto_merge": true,
+  "description": "Agent commits and the change is accepted. Baseline for everything else."
+}

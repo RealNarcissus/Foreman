@@ -1,0 +1,93 @@
+"""One run: provision, act, gate, score, record."""
+import csv
+import datetime as dt
+import json
+import pathlib
+import shutil
+import subprocess
+import time
+
+from . import config, gates, leak, oracle, rungs, workers
+
+IGNORE = shutil.ignore_patterns(".git", ".v", "__pycache__", "*.pyc", ".tox", ".venv")
+
+
+def prepare(dest: pathlib.Path, task: dict | None = None) -> pathlib.Path:
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(config.SUBJECT, dest, ignore=IGNORE)
+    if task and task.get("seed"):
+        from .patching import patch
+        patch(dest, task["seed"])
+    run_git(dest, "init", "-q")
+    run_git(dest, "add", "-A")
+    run_git(dest, "-c", "user.email=harness@local", "-c", "user.name=harness",
+            "commit", "-qm", "baseline")
+    return dest
+
+
+def run_git(cwd, *args) -> str:
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True).stdout
+
+
+def diff_of(worktree: pathlib.Path) -> str:
+    run_git(worktree, "add", "-A")
+    return run_git(worktree, "diff", "--cached")
+
+
+def ledger_row(row: dict) -> None:
+    config.LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    new = not config.LEDGER.exists()
+    with config.LEDGER.open("a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(row))
+        if new:
+            w.writeheader()
+        w.writerow(row)
+
+
+def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
+    rung = rungs.load(rung_id)
+    worker = workers.get(worker_name)
+    stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    run_id = f"{task['id']}_{rung_id}_{worker_name.split(':')[1]}_r{repeat}_{stamp}"
+    base = config.RUNS / run_id
+    worktree = base / "worktree"
+    prepare(worktree, task)
+
+    t0 = time.time()
+    action = worker.act(worktree, task)
+    diff = diff_of(worktree)
+
+    leaked = leak.oracle_leaked(worktree, task["oracle"])
+    tamper, tamper_evidence = leak.tampered(diff)
+    gate_results = gates.run(rung, worktree)
+    gate_green = all(g["ok"] for g in gate_results) and not leaked and not tamper
+    accepted = bool(gate_green and rung["auto_merge"])
+    scored = oracle.score(worktree, task["oracle"], base / "oracle")
+    completion = bool(scored["passed"] and not tamper and not leaked)
+    gate_escape = bool(gate_green and not scored["passed"])
+    seconds = round(time.time() - t0, 2)
+
+    record = {
+        "run_id": run_id,
+        "task_id": task["id"], "tier": task["tier"], "cls": task["cls"],
+        "rung": rung_id, "worker": worker_name,
+        "action": action,
+        "gate_green": gate_green, "accepted": accepted,
+        "oracle_passed": scored["passed"], "completion": completion,
+        "gate_escape": gate_escape, "tamper": tamper,
+        "oracle_leaked": leaked, "seconds": seconds,
+        "gates": gate_results,
+    }
+    base.mkdir(parents=True, exist_ok=True)
+    (base / "config.json").write_text(json.dumps({
+        "run_id": run_id, "task": task, "rung": rung, "worker": worker_name,
+        "subject": str(config.SUBJECT),
+    }, indent=2) + "\n")
+    (base / "diff.patch").write_text(diff)
+    (base / "record.json").write_text(json.dumps(record, indent=2) + "\n")
+    ledger_row({k: record[k] for k in (
+        "run_id", "task_id", "tier", "cls", "rung", "worker", "gate_green",
+        "accepted", "oracle_passed", "completion", "gate_escape", "tamper",
+        "oracle_leaked", "seconds")})
+    return record

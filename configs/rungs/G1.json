@@ -1,0 +1,7 @@
+{
+  "id": "G1",
+  "label": "required CI",
+  "requires": ["ci"],
+  "auto_merge": true,
+  "description": "click's own suite must pass: build, lint and tests as the project defines them."
+}

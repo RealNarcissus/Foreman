@@ -1,0 +1,8 @@
+{
+  "id": "G3",
+  "label": "CI + static analysis + automated review",
+  "requires": ["ci", "static_analysis", "ai_review"],
+  "auto_merge": true,
+  "reviewer": {"model": "opencode-go/claude-haiku-5-5", "prompt_hash": "UNPINNED", "threshold": "major"},
+  "description": "G2 plus a scripted reviewer. Prompt, model and threshold are part of the treatment and must be committed before the sweep."
+}
