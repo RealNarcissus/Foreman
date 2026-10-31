@@ -210,7 +210,7 @@ If a capstone rubric must be satisfied, the ladder exercises the GitHub Foundati
 
 | # | Decision | Needed by |
 | --- | --- | --- |
-| 1 | Subject repository and language | M1 |
+| 1 | Subject repository and language — recommended: `pallets/click` 8.5.0, see [03-subject-repo.md](03-subject-repo.md) | M1 |
 | 2 | CLI agent and pinned model version | M1 |
 | 3 | Which vendor AI reviewer occupies the G3 gate | M2 |
 | 4 | Repo hosting for the controlled layer (public, for reproducibility) | M2 |

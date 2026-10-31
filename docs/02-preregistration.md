@@ -85,6 +85,12 @@ Never go below N=20 or k=2. Any degradation is recorded in `deviations.md` with 
 | 2 | Multi-file mutation; requires tracing a call path; one existing test fails | Adds navigation and coupling |
 | 3 | Small feature: implement to a written spec (~60 words) plus a hidden acceptance test | Adds specification interpretation |
 
+### 4.1a Orthogonal stratum: logic vs security
+
+Tier measures difficulty. A second, independent label records the defect class: `logic` or `security`. Security-class tasks plant defects of the kind a gate is supposed to catch (injection-shaped interpolation, unvalidated paths, unsafe deserialisation), so that G2 has something to detect.
+
+Without this stratum the G2 result is true by construction: a suite of pure logic bugs cannot be caught by a security scanner, and H2 would hold for trivial reasons. The ratio is targeted at roughly 20-25% security-class, distributed across tiers 1 and 2. Whether CodeQL actually detects them is an outcome, not an assumption; a false negative is reported as a finding about gate coverage.
+
 ### 4.2 Acceptance criteria for every task
 
 1. A deterministic acceptance test that fails on the seeded state and passes on the reference solution.
@@ -94,7 +100,7 @@ Never go below N=20 or k=2. Any degradation is recorded in `deviations.md` with 
 
 ### 4.3 Open parameters (to fix at M2)
 
-- Subject repository and language.
+- Subject repository and language. **Proposed: `pallets/click` at tag `8.5.0`**, with measurements and rejected alternatives in [03-subject-repo.md](03-subject-repo.md). Awaiting sign-off.
 - The mutation operator list, which must be recorded in the manifest so the suite can be extended by others.
 - CLIs and pinned versions for the primary agent and the G3 reviewer.
 
