@@ -1,8 +1,18 @@
 {
   "id": "G3",
   "label": "CI + static analysis + automated review",
-  "requires": ["ci", "static_analysis", "ai_review"],
+  "requires": [
+    "ci",
+    "static_analysis",
+    "ai_review"
+  ],
   "auto_merge": true,
-  "reviewer": {"model": "opencode-go/claude-haiku-5-5", "prompt_hash": "UNPINNED", "threshold": "major"},
+  "reviewer": {
+    "model": "opencode-go/claude-haiku-5-5",
+    "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+    "prompt_file": "configs/g3/reviewer_prompt.md",
+    "threshold": "major",
+    "timeout_seconds": 180
+  },
   "description": "G2 plus a scripted reviewer. Prompt, model and threshold are part of the treatment and must be committed before the sweep."
 }

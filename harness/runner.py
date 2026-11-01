@@ -87,6 +87,10 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0,
         phase: str = "unspecified") -> dict:
     preflight()
     rung = rungs.load(rung_id)
+    if "static_analysis" in rung["requires"] and os.environ.get("FOREMAN_CODEQL_ENABLE") != "1":
+        raise RuntimeError(
+            f"{rung_id} requires static_analysis but FOREMAN_CODEQL_ENABLE!=1; "
+            "refusing to record a treatment that would not be delivered")
     worker = workers.get(worker_name)
     ensure_worker_allowed(worker)
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -113,7 +117,8 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0,
         containment_error = "worker.log missing: containment check could not run"
     outside = leak.outside_access(log_path.read_text()) if log_path.exists() else []
     tamper, tamper_evidence = leak.tampered(diff)
-    gate_results = gates.run(rung, worktree)
+    gate_results = gates.run(rung, worktree, diff=diff, spec=task["spec"],
+                             home=config_path_home(worktree))
     infra = bool(action.get("infra_error"))
     contaminated = bool(outside)
     gate_green = (all(g["ok"] for g in gate_results) and not leaked and not tamper

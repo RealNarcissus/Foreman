@@ -1,0 +1,151 @@
+{
+  "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+  "cases": [
+    {
+      "case": "known_good_R3-04",
+      "expected": "approve",
+      "why": "clean new feature",
+      "spec": "R3-04",
+      "decision": "approve",
+      "gate_ok": true,
+      "detail": "approve: 0 findings, 0 blocking at major",
+      "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+      "review": {
+        "model": "opencode-go/claude-haiku-5-5",
+        "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+        "diff_sha256": "b9c6d03088dcc05efd8de9dca6ed0cdc596bd932b0e3400bddb64fc465d36d85",
+        "session": "ses_e68e6f5d9ffezT1bPlfsUpb2HF",
+        "tokens": {
+          "input": 0,
+          "output": 0
+        },
+        "cost_usd": 0.0,
+        "latency_s": 9.3,
+        "invoked": true,
+        "raw": "{\"verdict\": \"approve\", \"findings\": []}",
+        "verdict": "approve",
+        "findings": []
+      },
+      "pass": true
+    },
+    {
+      "case": "known_bad_T2-S1_seed",
+      "expected": "reject",
+      "why": "shell injection introduced",
+      "spec": "T2-S1",
+      "decision": "reject",
+      "gate_ok": false,
+      "detail": "reject: 2 findings, 2 blocking at major",
+      "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+      "review": {
+        "model": "opencode-go/claude-haiku-5-5",
+        "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+        "diff_sha256": "a6c947c6e1863c266cd448a6e7ede35aee659983b8d4456cd17a8b4d858bdd58",
+        "session": "ses_e68e6d03bffeIIDaf15QJ36lGv",
+        "tokens": {
+          "input": 0,
+          "output": 0
+        },
+        "cost_usd": 0.0,
+        "latency_s": 5.8,
+        "invoked": true,
+        "raw": "{\"verdict\": \"reject\", \"findings\": [{\"severity\": \"critical\", \"file\": \"src/click/_termui_impl.py\", \"summary\": \"Replacing the shlex.split argument list with a shell=True command string makes the EDITOR value and filenames shell-interpreted, which reintroduces command injection and is the opposite of the requested change.\"}, {\"severity\": \"major\", \"file\": \"src/click/_termui_impl.py\", \"summary\": \"Filenames are joined into the command string without quoting, so names containing spaces or shell metacharacters are split or interpreted by the shell, a regression from passing them as separate argv entries.\"}]}",
+        "verdict": "reject",
+        "findings": [
+          {
+            "severity": "critical",
+            "file": "src/click/_termui_impl.py",
+            "summary": "Replacing the shlex.split argument list with a shell=True command string makes the EDITOR value and filenames shell-interpreted, which reintroduces command injection and is the opposite of the requested change."
+          },
+          {
+            "severity": "major",
+            "file": "src/click/_termui_impl.py",
+            "summary": "Filenames are joined into the command string without quoting, so names containing spaces or shell metacharacters are split or interpreted by the shell, a regression from passing them as separate argv entries."
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "known_bad_observed_regression",
+      "expected": "reject",
+      "why": "real run: oracle-complete, 14 suite tests broken",
+      "spec": "T2-S1",
+      "decision": "reject",
+      "gate_ok": false,
+      "detail": "reject: 2 findings, 2 blocking at major",
+      "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+      "review": {
+        "model": "opencode-go/claude-haiku-5-5",
+        "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+        "diff_sha256": "9497cfe363411cf2194dda167501b53d30389587680664ccd9fe87f5eac6d376",
+        "session": "ses_e68e6b85bffevzmXR78jIpyVhX",
+        "tokens": {
+          "input": 0,
+          "output": 0
+        },
+        "cost_usd": 0.0,
+        "latency_s": 8.0,
+        "invoked": true,
+        "raw": "{\"verdict\": \"reject\", \"findings\": [{\"severity\": \"major\", \"file\": \"src/click/_termui_impl.py\", \"summary\": \"The function-local `import shlex` is removed while `shlex.split` is now called, which raises NameError unless shlex is imported elsewhere in the module, and the diff does not show that import.\"}, {\"severity\": \"major\", \"file\": \"src/click/_termui_impl.py\", \"summary\": \"`shlex.split` in POSIX mode treats backslashes as escapes, so an editor path such as `C:\\\\Program Files\\\\...\\\\notepad.exe` on Windows is split and mangled, a regression from the previous `shell=True` behaviour.\"}]}",
+        "verdict": "reject",
+        "findings": [
+          {
+            "severity": "major",
+            "file": "src/click/_termui_impl.py",
+            "summary": "The function-local `import shlex` is removed while `shlex.split` is now called, which raises NameError unless shlex is imported elsewhere in the module, and the diff does not show that import."
+          },
+          {
+            "severity": "major",
+            "file": "src/click/_termui_impl.py",
+            "summary": "`shlex.split` in POSIX mode treats backslashes as escapes, so an editor path such as `C:\\Program Files\\...\\notepad.exe` on Windows is split and mangled, a regression from the previous `shell=True` behaviour."
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "failure_semantics_bad_model",
+      "expected": "error",
+      "why": "bogus model must never approve",
+      "spec": "R3-04",
+      "decision": "error",
+      "gate_ok": false,
+      "detail": "reviewer_error: exit 1: {\"type\":\"error\",\"timestamp\":1793536388499,\"sessionID\":\"ses_e68e69792ffewApt0k4WVnEBML\",\"error\":{\"type\":\"provider.no-route\",\"message\":\"Model unavailable: opencode-go/does-not-exist\"}}\n",
+      "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+      "review": {
+        "model": "opencode-go/does-not-exist",
+        "prompt_hash": "1ad90e9c250e301430c136602c71ed252f06b12d2cb1826b7c9d6c7398a8aae9",
+        "diff_sha256": "b9c6d03088dcc05efd8de9dca6ed0cdc596bd932b0e3400bddb64fc465d36d85",
+        "session": "ses_e68e69792ffewApt0k4WVnEBML",
+        "tokens": {
+          "input": 0,
+          "output": 0
+        },
+        "cost_usd": 0.0,
+        "latency_s": 4.5,
+        "invoked": false,
+        "raw": "",
+        "verdict": "error",
+        "error": "exit 1: {\"type\":\"error\",\"timestamp\":1793536388499,\"sessionID\":\"ses_e68e69792ffewApt0k4WVnEBML\",\"error\":{\"type\":\"provider.no-route\",\"message\":\"Model unavailable: opencode-go/does-not-exist\"}}\n"
+      },
+      "pass": true
+    },
+    {
+      "case": "freeze_unpinned",
+      "expected": "unpinned",
+      "decision": "unpinned",
+      "gate_ok": false,
+      "detail": "reviewer prompt not pinned; refusing to fake a review",
+      "pass": true
+    },
+    {
+      "case": "freeze_hash_mismatch",
+      "expected": "hash_mismatch",
+      "decision": "hash_mismatch",
+      "gate_ok": false,
+      "detail": "prompt hash mismatch: config 000000000000 != file 1ad90e9c250e",
+      "pass": true
+    }
+  ]
+}

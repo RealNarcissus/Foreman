@@ -272,7 +272,7 @@ class Duration(ParamType):
         number = ""
 
         for char in value.strip():
-            if char.isdigit():
+            if char in "0123456789":
                 number += char
                 continue
 

@@ -50,7 +50,10 @@ def _baseline(worktree: pathlib.Path) -> dict:
 def static_analysis(worktree: pathlib.Path, baseline: dict | None = None) -> dict:
     """CodeQL with the frozen G2 configuration. Disabled unless FOREMAN_CODEQL_ENABLE=1."""
     if os.environ.get("FOREMAN_CODEQL_ENABLE") != "1":
-        return {"gate": "static_analysis", "ok": True, "detail": "skipped (FOREMAN_CODEQL_ENABLE!=1)"}
+        # Fail closed. A skipped gate that reports ok=True is how 36 runs got
+        # filed as G2 while receiving G1 treatment.
+        return {"gate": "static_analysis", "ok": False,
+                "detail": "config error: FOREMAN_CODEQL_ENABLE!=1, gate would be skipped"}
     db = worktree.parent / "_codeql_db"
     sarif = worktree.parent / "_codeql.sarif"
     subprocess.run([config.CODEQL, "database", "create", str(db), "--language=python",
@@ -79,10 +82,45 @@ def static_analysis(worktree: pathlib.Path, baseline: dict | None = None) -> dic
             "new": new, "detail": f"{len(alerts)} alerts, {len(security)} new security"}
 
 
-def ai_review(worktree: pathlib.Path, reviewer: dict | None) -> dict:
-    """Stub until the reviewer prompt is committed and hashed."""
-    return {"gate": "ai_review", "ok": True,
-            "detail": "stub: reviewer prompt not yet pinned", "comments": []}
+SEVERITY_RANK = {"minor": 1, "major": 2, "critical": 3}
+
+
+def ai_review(worktree: pathlib.Path, reviewer: dict | None, diff: str = "",
+              spec: str = "", home: pathlib.Path | None = None) -> dict:
+    """One frozen reviewer call. Every failure mode is a failed gate."""
+    from . import reviewer as reviewer_mod
+
+    if not reviewer or not reviewer.get("prompt_hash") or reviewer["prompt_hash"] == "UNPINNED":
+        return {"gate": "ai_review", "ok": False, "decision": "unpinned",
+                "detail": "reviewer prompt not pinned; refusing to fake a review"}
+    actual = reviewer_mod.prompt_hash()
+    if actual != reviewer["prompt_hash"]:
+        return {"gate": "ai_review", "ok": False, "decision": "hash_mismatch",
+                "detail": f"prompt hash mismatch: config {reviewer['prompt_hash'][:12]}"
+                          f" != file {actual[:12]}"}
+    if home is None:
+        return {"gate": "ai_review", "ok": False, "decision": "error",
+                "detail": "reviewer_error: no credentials home"}
+
+    ev = reviewer_mod.review(diff, spec, pathlib.Path(home), reviewer)
+    if ev["verdict"] == "error":
+        return {"gate": "ai_review", "ok": False, "decision": "error",
+                "detail": f"reviewer_error: {ev.get('error')}", "review": ev}
+    if not ev.get("invoked"):
+        return {"gate": "ai_review", "ok": False, "decision": "not_invoked",
+                "detail": "reviewer produced no session evidence; not counted as a review",
+                "review": ev}
+
+    threshold = reviewer.get("threshold", "major")
+    blocking = [f for f in ev["findings"]
+                if SEVERITY_RANK[f["severity"]] >= SEVERITY_RANK[threshold]]
+    ok = ev["verdict"] == "approve" and not blocking
+    detail = (f"{ev['verdict']}: {len(ev['findings'])} findings, "
+              f"{len(blocking)} blocking at {threshold}")
+    if ev["verdict"] == "approve" and blocking:
+        detail += " (inconsistent: approving verdict with blocking findings rejects)"
+    return {"gate": "ai_review", "ok": ok, "decision": ev["verdict"],
+            "detail": detail, "blocking": blocking, "review": ev}
 
 
 def human_review(worktree: pathlib.Path) -> dict:
@@ -98,12 +136,14 @@ IMPLEMENTATIONS = {
 }
 
 
-def run(rung: dict, worktree: pathlib.Path) -> list[dict]:
+def run(rung: dict, worktree: pathlib.Path, diff: str = "", spec: str = "",
+        home: pathlib.Path | None = None) -> list[dict]:
     results = []
     for name in rung["requires"]:
         fn = IMPLEMENTATIONS[name]
         if name == "ai_review":
-            results.append(ai_review(worktree, rung.get("reviewer")))
+            results.append(ai_review(worktree, rung.get("reviewer"), diff=diff,
+                                     spec=spec, home=home))
         else:
             results.append(fn(worktree))
         if not results[-1]["ok"]:
