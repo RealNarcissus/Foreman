@@ -6,6 +6,7 @@ import json
 import pathlib
 import shutil
 import subprocess
+import threading
 import time
 
 from . import config, gates, leak, oracle, rungs, sandbox, workers
@@ -65,16 +66,21 @@ def config_path_home(worktree: pathlib.Path) -> pathlib.Path:
     return _sb.HOMES / worktree.parent.name
 
 
+_LEDGER_LOCK = threading.Lock()
+
+
 def ledger_row(row: dict) -> None:
+    """Append one row. Serialised: the sweep runs several jobs in one process."""
     import os
-    path = pathlib.Path(os.environ.get("FOREMAN_LEDGER", config.LEDGER))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    new = not path.exists() or path.read_text().splitlines()[0] != ",".join(row)
-    with path.open("a", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(row))
-        if new:
-            w.writeheader()
-        w.writerow(row)
+    with _LEDGER_LOCK:
+        path = pathlib.Path(os.environ.get("FOREMAN_LEDGER", config.LEDGER))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        new = not path.exists() or path.read_text().splitlines()[0] != ",".join(row)
+        with path.open("a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(row))
+            if new:
+                w.writeheader()
+            w.writerow(row)
 
 
 def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0,

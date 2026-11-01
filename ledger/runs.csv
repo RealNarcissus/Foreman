@@ -84,3 +84,7 @@ R3-02_G0_deepseek_v4_1_flash_r0_20261101T095546Z,R3-02,3,feature,G0,opencode:dee
 R3-03_G0_deepseek_v4_1_flash_r0_20261101T095814Z,R3-03,3,feature,G0,opencode:deepseek-v4.1-flash,diagnostic-revision,True,True,True,True,False,False,False,374.16
 R3-04_G0_deepseek_v4_1_flash_r0_20261101T100429Z,R3-04,3,feature,G0,opencode:deepseek-v4.1-flash,diagnostic-revision,True,True,True,True,False,False,False,50.71
 T1-02_G0_deepseek_v4_1_flash_r0_20261101T101318Z,T1-02,1,logic,G0,opencode:deepseek-v4.1-flash,validation,True,True,True,True,False,False,False,28.1
+T1-01_G0_deepseek_v4_1_flash_r0_20261101T101502Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,sweep,True,True,True,True,False,False,False,20.85
+T1-01_G0_deepseek_v4_1_flash_r2_20261101T101502Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,sweep,True,True,True,True,False,False,False,30.29
+T1-02_G0_deepseek_v4_1_flash_r0_20261101T101502Z,T1-02,1,logic,G0,opencode:deepseek-v4.1-flash,sweep,True,True,True,True,False,False,False,31.65
+T1-01_G0_deepseek_v4_1_flash_r1_20261101T101502Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,sweep,True,True,True,True,False,False,False,36.43
