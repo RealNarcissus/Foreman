@@ -81,3 +81,8 @@ The revision must add tier-3 tasks whose oracles constrain behaviour click's
 suite does not already pin: multi-file features with an observable contract, not
 single-function additions. If the revised set also saturates, saturation is the
 finding and difficulty is not escalated further.
+
+The revision was authored and applied on 2026-11-01 ([02](02-preregistration.md)
+§8.2). Its four tasks, `R3-01`..`R3-04`, are in `tasks/revision.py`. The check on
+those four is governed by a decision table written before the runs:
+[09-revision-saturation-check.md](09-revision-saturation-check.md).

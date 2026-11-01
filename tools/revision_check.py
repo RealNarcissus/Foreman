@@ -22,7 +22,8 @@ def flush():
 
 for t in REVISION:
     try:
-        r = runner.run(t, "G0", "opencode:deepseek-v4.1-flash")
+        r = runner.run(t, "G0", "opencode:deepseek-v4.1-flash",
+                       phase="diagnostic-revision")
         rows.append({"task": t["id"], "tier": t["tier"], "cls": t["cls"],
                      "completion": r["completion"], "oracle": r["oracle_passed"],
                      "valid": r["valid"], "infra": r["action"].get("infra_error"),

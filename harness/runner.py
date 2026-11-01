@@ -77,7 +77,8 @@ def ledger_row(row: dict) -> None:
         w.writerow(row)
 
 
-def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
+def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0,
+        phase: str = "unspecified") -> dict:
     preflight()
     rung = rungs.load(rung_id)
     worker = workers.get(worker_name)
@@ -122,7 +123,7 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
     record = {
         "run_id": run_id,
         "task_id": task["id"], "tier": task["tier"], "cls": task["cls"],
-        "rung": rung_id, "worker": worker_name,
+        "rung": rung_id, "worker": worker_name, "phase": phase,
         "action": action,
         "gate_green": gate_green, "accepted": accepted,
         "oracle_passed": scored["passed"], "completion": completion,
@@ -146,7 +147,7 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
         shutil.rmtree(config_path_home(worktree), ignore_errors=True)
 
     ledger_row({k: record[k] for k in (
-        "run_id", "task_id", "tier", "cls", "rung", "worker", "gate_green",
+        "run_id", "task_id", "tier", "cls", "rung", "worker", "phase", "gate_green",
         "accepted", "oracle_passed", "completion", "gate_escape", "tamper",
         "oracle_leaked", "seconds")})
     return record

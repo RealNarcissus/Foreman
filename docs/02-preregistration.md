@@ -269,8 +269,15 @@ already has.
 
 Verification: `python3 tools/verify_tasks.py` reports 16/16 (`tasks/verification.json`).
 For each revised task the oracle fails on the pristine tree, passes on the
-reference, and the reference leaves click's suite green. If this revision also
-saturates, §8.1's rule applies without amendment: saturation is the finding.
+reference, and the reference leaves click's suite green.
+
+**Outcome (2026-11-01): the revision also saturated — 4/4 at G0, all valid, zero
+infrastructure failures** ([09](09-revision-saturation-check.md)). Under §8.1's
+rule that closes the question: saturation is the finding, no further escalation,
+no second revision. The result is about this task set at this rung with one
+worker (n=1 per task); it is not a claim that harder tasks do not exist. M3 keeps
+the scope already applied — gate yield and human cost primary, completion
+descriptive.
 
 ## 9. Threats to validity
 

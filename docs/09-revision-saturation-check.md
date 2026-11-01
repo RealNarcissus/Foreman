@@ -40,5 +40,35 @@ original tier-3 stratum saturated.
 
 ## Result
 
-Filled in after the runs; the decision above is copied unchanged into the
-conclusion.
+Run 2026-11-01. Four runs, one attempt each, G0, `opencode:deepseek-v4.1-flash`.
+Records: `ledger/revision-saturation.json`; each run also carries
+`phase=diagnostic-revision` in `ledger/runs.csv`.
+
+| Task | Contract | Completion | Oracle | Valid | Probe | Seconds | Cost |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| R3-01 | aliases across resolution and help | yes | pass | yes | ok | 226.5 | $0.024 |
+| R3-02 | Examples section in help | yes | pass | yes | ok | 147.0 | $0.013 |
+| R3-03 | `split` for multi-value parameters | yes | pass | yes | ok | 374.2 | $0.043 |
+| R3-04 | `Duration` type | yes | pass | yes | ok | 50.7 | $0.004 |
+
+**4/4.** Per the table above, this is the first row: the revision also saturates,
+so saturation is the finding and difficulty is not escalated further. No second
+revision, no timebox change, no rung change. M3 proceeds on the scope already
+applied in [02](02-preregistration.md) §8.1: gate yield (RQ3) and human cost
+(RQ2) primary, completion descriptive.
+
+What this does and does not establish:
+
+- It does establish that *shape* was not the reason the tier-3 stratum saturated.
+  These four contracts required coordinated edits at several sites, and none of
+  them produced a failure in this worker at the loosest rung.
+- It does not establish that this worker "can do anything", nor that harder tasks
+  do not exist. It is n=1 per task, one model, one attempt. The claim is about
+  this task set at this rung, which is exactly the claim the pilot needs; it is
+  in the limitations as a task-set result, not a capability result.
+- It says nothing about stricter rungs. Completion at G0 bounds headroom from
+  below only: the gates still have to be measured for what they catch and what
+  they cost in human minutes, which is now the primary outcome.
+
+The original twelve remain the ceiling control. Both saturated sets are kept and
+reportable; neither is deleted or re-scored.

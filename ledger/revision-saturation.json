@@ -1,0 +1,50 @@
+[
+  {
+    "task": "R3-01",
+    "tier": 3,
+    "cls": "feature",
+    "completion": true,
+    "oracle": true,
+    "valid": true,
+    "infra": null,
+    "probe_ok": true,
+    "seconds": 226.5,
+    "cost_usd": 0.023576
+  },
+  {
+    "task": "R3-02",
+    "tier": 3,
+    "cls": "feature",
+    "completion": true,
+    "oracle": true,
+    "valid": true,
+    "infra": null,
+    "probe_ok": true,
+    "seconds": 147.0,
+    "cost_usd": 0.012635
+  },
+  {
+    "task": "R3-03",
+    "tier": 3,
+    "cls": "feature",
+    "completion": true,
+    "oracle": true,
+    "valid": true,
+    "infra": null,
+    "probe_ok": true,
+    "seconds": 374.16,
+    "cost_usd": 0.042693
+  },
+  {
+    "task": "R3-04",
+    "tier": 3,
+    "cls": "feature",
+    "completion": true,
+    "oracle": true,
+    "valid": true,
+    "infra": null,
+    "probe_ok": true,
+    "seconds": 50.71,
+    "cost_usd": 0.003774
+  }
+]
