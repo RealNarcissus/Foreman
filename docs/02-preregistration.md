@@ -240,6 +240,38 @@ ceiling control. If the revision also saturates, saturation is reported as the
 finding and difficulty is not escalated further. The timebox is not an independent
 variable and will not be tightened.
 
+### 8.2 The permitted revision, applied (2026-11-01)
+
+The revision changed the *shape* of the tier-3 tasks, not their subject. Every
+original tier-3 task was a single self-contained `append` to one module: the
+worker never had to read existing code, find a call site, or preserve an
+invariant. The four revised tasks (`R3-01`..`R3-04`, `tasks/revision.py`) each
+require several sites to agree, and each is checked against two conditions rather
+than one: the oracle passes, and click's own suite stays green.
+
+| Task | Sites | Contract |
+| --- | --- | --- |
+| R3-01 command aliases | `Command.__init__` (signature + body), `Group.get_command`, `Group.format_commands` | alias runs the command; help lists it once, as `build (b)`; unknown names still fail |
+| R3-02 Examples in help | `Command.__init__` (signature + body), `format_help` order, a new formatter method | section between options and epilog; absent when empty; text not interpolated |
+| R3-03 `split` for multi-value params | `Parameter.__init__` (signature + body), `type_cast_value` | splitting composes with type conversion; only for `multiple`/`nargs != 1`; empty segments dropped |
+| R3-04 `Duration` type | `types.py`, `click/__init__.py` export | unit parsing in fixed order; six rejection cases; `click.DURATION` name |
+
+Composition of the sweep is unchanged at 12 tasks: the eight tier-1/tier-2 tasks
+plus `R3-01`..`R3-04`. The original four tier-3 tasks remain in `tasks.py` as the
+ceiling control and are excluded via `revision.SWEEP`.
+
+Two candidate features were discarded before coding because click 8.5.0 already
+ships them (`Choice(case_sensitive=...)`, `auto_envvar_prefix`, range `clamp`,
+and at-file values). The verification harness would have caught them — an oracle
+that passes on the pristine tree is a hard failure — but it is worth recording
+that the first hazard of task authoring is proposing a feature the subject
+already has.
+
+Verification: `python3 tools/verify_tasks.py` reports 16/16 (`tasks/verification.json`).
+For each revised task the oracle fails on the pristine tree, passes on the
+reference, and the reference leaves click's suite green. If this revision also
+saturates, §8.1's rule applies without amendment: saturation is the finding.
+
 ## 9. Threats to validity
 
 | Threat | Handling |

@@ -5,3 +5,6 @@ T1-01_G0_nolog_r99_20261031T175028Z,T1-01,1,logic,G0,scripted:nolog,True,True,Fa
 T1-01_G0_leak_r99_20261031T194228Z,T1-01,1,logic,G0,scripted:leak,True,True,False,False,True,False,False,2.83
 T1-01_G0_reference_r99_20261031T194231Z,T1-01,1,logic,G0,scripted:reference,True,True,True,True,False,False,False,1.98
 T1-01_G0_nolog_r99_20261031T194234Z,T1-01,1,logic,G0,scripted:nolog,False,False,False,False,False,False,False,1.89
+T1-01_G0_leak_r99_20261101T094238Z,T1-01,1,logic,G0,scripted:leak,True,True,False,False,True,False,False,1.86
+T1-01_G0_reference_r99_20261101T094240Z,T1-01,1,logic,G0,scripted:reference,True,True,True,True,False,False,False,1.87
+T1-01_G0_nolog_r99_20261101T094242Z,T1-01,1,logic,G0,scripted:nolog,False,False,False,False,False,False,False,2.05

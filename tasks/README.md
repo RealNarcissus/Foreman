@@ -7,7 +7,14 @@ agent's worktree.
 | --- | --- | --- |
 | 1 | 4 | Single-function mutation; click's own suite fails |
 | 2 | 4 | Cross-cutting mutation across call paths |
-| 3 | 4 | Small additive feature; click's suite says nothing |
+| 3 | 4 | Feature whose contract spans several call sites; click's suite says nothing |
+
+The tier-3 tasks in `tasks.py` are the **ceiling control**: they were solved 12/12
+at G0 and are excluded from the sweep. The sweep runs the tier-3 revision in
+`revision.py` (`R3-01`..`R3-04`; see `SWEEP`), which exists because the original
+tier-3 shape -- one self-contained `append` -- does not require reading the
+codebase, and saturated for that reason. The revision is the single one the
+preregistration permits.
 
 Security class (orthogonal to tier): **T1-04, T2-S1, T2-S2**.
 

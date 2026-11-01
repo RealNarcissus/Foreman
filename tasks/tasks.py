@@ -61,6 +61,7 @@ def test_accepts_falsey(falsey):
     ),
     dict(
         id="T1-04", tier=1, cls="security", source="library parameter (known-blind control)",
+        gate_expectation="fire",
         spec="Launching a URL must pass it to the helper as a single argument, never as part of a shell command.",
         seed=dict(file="src/click/_termui_impl.py", fn="def open_url(",
                   old='        c = subprocess.Popen(["xdg-open", url])',
@@ -123,6 +124,7 @@ def test_empty_envvar_uses_default():
     ),
     dict(
         id="T2-S1", tier=2, cls="security", source="EDITOR",
+        gate_expectation="fire",
         spec="Opening files in the user's editor must not interpret shell metacharacters from the EDITOR variable.",
         seed=dict(file="src/click/_termui_impl.py", fn="    def edit_files(",
                   old="            c = subprocess.Popen(\n                args=shlex.split(editor) + list(filenames),\n                env=environ,\n            )",
@@ -144,6 +146,7 @@ def test_editor_does_not_use_shell(monkeypatch):
     ),
     dict(
         id="T2-S2", tier=2, cls="security", source="PAGER",
+        gate_expectation="fire",
         spec="The pager must never be run through a shell, whatever PAGER contains.",
         seed=dict(file="src/click/_termui_impl.py", fn="def _tempfilepager(",
                   old="        subprocess.call([str(cmd_path), *cmd_params, f.name])",

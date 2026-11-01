@@ -11,10 +11,11 @@ import pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "tasks"))
 
 from tasks import TASKS
+from revision import REVISION
 from holdout import HOLDOUT
 from . import runner
 
-BY_ID = {t["id"]: t for t in TASKS + HOLDOUT}
+BY_ID = {t["id"]: t for t in TASKS + REVISION + HOLDOUT}
 
 
 def cmd_run(a):

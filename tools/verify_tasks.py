@@ -1,25 +1,52 @@
-"""Verify every task: oracle fails on the seed, passes on the reference."""
-import sys, pathlib, tempfile
+"""Verify every task: oracle fails on the seed, passes on the reference.
+
+Run with `--write` to regenerate `tasks/verification.json`.
+"""
+import json, sys, pathlib, tempfile
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "tasks"))
 
 from tasklib import fresh, patch, run_oracle, run_own_suite
 from tasks import TASKS
+from revision import REVISION
+
+
+def apply_reference(root, reference):
+    """Apply one edit or a list of them; every site must find its anchor."""
+    for edit in reference if isinstance(reference, list) else [reference]:
+        if edit.get("append"):
+            path = root / edit["file"]
+            path.write_text(path.read_text() + edit["append"])
+        else:
+            patch(root, edit)
+
 
 rows = []
-for t in TASKS:
+for t in TASKS + REVISION:
     root = pathlib.Path(tempfile.mkdtemp()) / t["id"]
     fresh(root)
     notes = []
     ok = True
+    record = {
+        "id": t["id"], "tier": t["tier"], "cls": t["cls"],
+        "source": t["source"], "spec": t["spec"],
+        "oracle_fails_on_seed": None, "oracle_passes_on_reference": None,
+        "own_suite_green_on_seed": None, "reference_suite_green": None,
+        "gate_expectation": t.get("gate_expectation", "n/a"), "verified": False,
+    }
 
     if t["seed"]:
+        record["seed_file"] = t["seed"]["file"]
         try:
             patch(root, t["seed"])
         except LookupError as e:
-            rows.append((t["id"], "PATCH-MISS", str(e)[:70])); continue
+            rows.append(record)
+            print(f"{t['id']:6}  PATCH-MISS  {str(e)[:70]}")
+            continue
         oracle_fails_on_seed = not run_oracle(root, t["oracle"])
         suite_green_on_seed = run_own_suite(root)
+        record["oracle_fails_on_seed"] = oracle_fails_on_seed
+        record["own_suite_green_on_seed"] = suite_green_on_seed
         if not oracle_fails_on_seed:
             ok = False; notes.append("oracle did NOT fail on seed")
         if t["cls"] == "logic" and suite_green_on_seed:
@@ -31,25 +58,37 @@ for t in TASKS:
         if not run_oracle(p2, t["oracle"]):
             ok = False; notes.append("oracle failed on pristine")
     else:
+        record["seed_file"] = None
         if run_oracle(root, t["oracle"]):
             ok = False; notes.append("oracle passed without the feature")
         if not t["reference"]:
             ok = False; notes.append("no reference implementation")
         else:
             try:
-                patch(root, {"file": t["reference"]["file"], "fn": None, "old": None, "new": None}) if False else None
-                p = root / t["reference"]["file"]
-                p.write_text(p.read_text() + t["reference"]["append"])
+                apply_reference(root, t["reference"])
             except Exception as e:
                 ok = False; notes.append(f"reference failed: {e}")
-            if not run_oracle(root, t["oracle"]):
+            oracle_ok = run_oracle(root, t["oracle"])
+            record["oracle_passes_on_reference"] = oracle_ok
+            if not oracle_ok:
                 ok = False; notes.append("oracle failed with reference")
+            # A reference that breaks click's own suite is not a valid solution:
+            # the worker has to keep the existing behaviour working.
+            suite_green = run_own_suite(root)
+            record["reference_suite_green"] = suite_green
+            notes.append("ref-suite:" + ("green" if suite_green else "red"))
+            if not suite_green:
+                ok = False; notes.append("reference broke the existing suite")
 
-    rows.append((t["id"], "PASS" if ok else "FAIL", "; ".join(notes)))
+    record["verified"] = ok
+    rows.append(record)
+    print(f"{t['id']:6}  {'PASS' if ok else 'FAIL':6}  {'; '.join(notes)}")
 
-w = max(len(r[0]) for r in rows)
-print(f"{'task'.ljust(w)}  result  notes")
-for r in rows:
-    print(f"{r[0].ljust(w)}  {r[1]:6}  {r[2]}")
 print()
-print("passed:", sum(1 for r in rows if r[1] == "PASS"), "/", len(rows))
+print("passed:", sum(1 for r in rows if r["verified"]), "/", len(rows))
+
+if "--write" in sys.argv:
+    out = pathlib.Path(__file__).parent.parent / "tasks" / "verification.json"
+    out.write_text(json.dumps(rows, indent=2) + "\n")
+    print("wrote", out)
+

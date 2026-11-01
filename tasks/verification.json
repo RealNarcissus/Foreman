@@ -5,12 +5,13 @@
     "cls": "logic",
     "source": "n/a",
     "spec": "echo() must still write a trailing newline when the message is empty.",
-    "seed_file": "src/click/utils.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": false,
+    "reference_suite_green": null,
     "gate_expectation": "n/a",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/utils.py"
   },
   {
     "id": "T1-02",
@@ -18,12 +19,13 @@
     "cls": "logic",
     "source": "n/a",
     "spec": "join_options() must separate option names with a comma and a space, shortest prefix first.",
-    "seed_file": "src/click/formatting.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": false,
+    "reference_suite_green": null,
     "gate_expectation": "n/a",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/formatting.py"
   },
   {
     "id": "T1-03",
@@ -31,12 +33,13 @@
     "cls": "logic",
     "source": "n/a",
     "spec": "BOOL must reject values it does not recognise instead of treating them as false.",
-    "seed_file": "src/click/types.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": false,
+    "reference_suite_green": null,
     "gate_expectation": "n/a",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/types.py"
   },
   {
     "id": "T1-04",
@@ -44,12 +47,13 @@
     "cls": "security",
     "source": "library parameter (known-blind control)",
     "spec": "Launching a URL must pass it to the helper as a single argument, never as part of a shell command.",
-    "seed_file": "src/click/_termui_impl.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": true,
+    "reference_suite_green": null,
     "gate_expectation": "fire",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/_termui_impl.py"
   },
   {
     "id": "T2-01",
@@ -57,12 +61,13 @@
     "cls": "logic",
     "source": "n/a",
     "spec": "An option's environment variable takes precedence over the automatic prefix, including when its value is empty.",
-    "seed_file": "src/click/core.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": false,
+    "reference_suite_green": null,
     "gate_expectation": "n/a",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/core.py"
   },
   {
     "id": "T2-02",
@@ -70,12 +75,13 @@
     "cls": "logic",
     "source": "n/a",
     "spec": "A parameter with several environment variables uses the first one that is set and non-empty.",
-    "seed_file": "src/click/core.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": false,
+    "reference_suite_green": null,
     "gate_expectation": "n/a",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/core.py"
   },
   {
     "id": "T2-S1",
@@ -83,25 +89,27 @@
     "cls": "security",
     "source": "EDITOR",
     "spec": "Opening files in the user's editor must not interpret shell metacharacters from the EDITOR variable.",
-    "seed_file": "src/click/_termui_impl.py",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": false,
+    "reference_suite_green": null,
     "gate_expectation": "fire",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/_termui_impl.py"
   },
   {
     "id": "T2-S2",
     "tier": 2,
     "cls": "security",
     "source": "PAGER",
-    "spec": "The pager command must run as an argument vector; parameters from PAGER must never be interpreted by a shell.",
-    "seed_file": "src/click/_termui_impl.py",
+    "spec": "The pager must never be run through a shell, whatever PAGER contains.",
     "oracle_fails_on_seed": true,
-    "oracle_passes_on_reference": true,
+    "oracle_passes_on_reference": null,
     "own_suite_green_on_seed": true,
+    "reference_suite_green": null,
     "gate_expectation": "fire",
-    "verified": true
+    "verified": true,
+    "seed_file": "src/click/_termui_impl.py"
   },
   {
     "id": "T3-01",
@@ -109,12 +117,13 @@
     "cls": "feature",
     "source": "n/a",
     "spec": "Add PositiveInt, a ParamType accepting only integers greater than zero and failing otherwise.",
-    "seed_file": null,
-    "oracle_fails_on_seed": true,
+    "oracle_fails_on_seed": null,
     "oracle_passes_on_reference": true,
     "own_suite_green_on_seed": null,
-    "gate_expectation": "none (no test coverage of the feature)",
-    "verified": true
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
   },
   {
     "id": "T3-02",
@@ -122,12 +131,13 @@
     "cls": "feature",
     "source": "n/a",
     "spec": "Add Percent, a ParamType accepting 0-100 inclusive and exposing the value as given, rejecting anything outside that range.",
-    "seed_file": null,
-    "oracle_fails_on_seed": true,
+    "oracle_fails_on_seed": null,
     "oracle_passes_on_reference": true,
     "own_suite_green_on_seed": null,
-    "gate_expectation": "none (no test coverage of the feature)",
-    "verified": true
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
   },
   {
     "id": "T3-03",
@@ -135,12 +145,13 @@
     "cls": "feature",
     "source": "n/a",
     "spec": "Add truncate_middle(text, width) to click.utils, keeping the start and end of a long string and inserting an ellipsis.",
-    "seed_file": null,
-    "oracle_fails_on_seed": true,
+    "oracle_fails_on_seed": null,
     "oracle_passes_on_reference": true,
     "own_suite_green_on_seed": null,
-    "gate_expectation": "none (no test coverage of the feature)",
-    "verified": true
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
   },
   {
     "id": "T3-04",
@@ -148,11 +159,68 @@
     "cls": "feature",
     "source": "n/a",
     "spec": "Add HexColor, a ParamType turning #rrggbb into an (r, g, b) tuple and rejecting malformed input.",
-    "seed_file": null,
-    "oracle_fails_on_seed": true,
+    "oracle_fails_on_seed": null,
     "oracle_passes_on_reference": true,
     "own_suite_green_on_seed": null,
-    "gate_expectation": "none (no test coverage of the feature)",
-    "verified": true
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
+  },
+  {
+    "id": "R3-01",
+    "tier": 3,
+    "cls": "feature",
+    "source": "n/a",
+    "spec": "Add an aliases parameter to Command: a sequence of alternative names a group accepts for that command. Both the canonical name and every alias must run the command identically. The group's help must list each command once, under its canonical name, with aliases shown in parentheses after it (e.g. 'build (b)'); an alias must not create a separate row. Command.aliases defaults to an empty tuple. Unknown names still raise NoSuchCommand.",
+    "oracle_fails_on_seed": null,
+    "oracle_passes_on_reference": true,
+    "own_suite_green_on_seed": null,
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
+  },
+  {
+    "id": "R3-02",
+    "tier": 3,
+    "cls": "feature",
+    "source": "n/a",
+    "spec": "Add an examples parameter to Command: a sequence of (invocation, description) pairs rendered under an 'Examples:' section of --help. The section is written as a definition list (invocation, then its description) and appears after the options and before the epilog. A command with no examples must not show the heading at all. Text must be rendered literally: no percent- or brace-interpolation.",
+    "oracle_fails_on_seed": null,
+    "oracle_passes_on_reference": true,
+    "own_suite_green_on_seed": null,
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
+  },
+  {
+    "id": "R3-03",
+    "tier": 3,
+    "cls": "feature",
+    "source": "n/a",
+    "spec": "Add a split parameter to Parameter (and therefore to Option and Argument): when set to a separator string, every incoming string is divided on that separator before type conversion, but only for parameters that accept several values (multiple=True or nargs != 1). Empty segments are dropped. With split unset, behaviour is unchanged. The split pieces must be type-converted as usual, so split and type compose.",
+    "oracle_fails_on_seed": null,
+    "oracle_passes_on_reference": true,
+    "own_suite_green_on_seed": null,
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
+  },
+  {
+    "id": "R3-04",
+    "tier": 3,
+    "cls": "feature",
+    "source": "n/a",
+    "spec": "Add click.types.Duration and export it as click.DURATION. It parses a duration written as digits followed by h, m or s, in that order, with any subset of the three (e.g. '90s', '2m30s', '1h2m3s') and returns whole seconds. A bare number with no unit, an unknown unit, a missing number, a negative value and out-of-order units ('1s1h') must all fail with BadParameter. Its name is 'duration'.",
+    "oracle_fails_on_seed": null,
+    "oracle_passes_on_reference": true,
+    "own_suite_green_on_seed": null,
+    "reference_suite_green": true,
+    "gate_expectation": "n/a",
+    "verified": true,
+    "seed_file": null
   }
 ]
