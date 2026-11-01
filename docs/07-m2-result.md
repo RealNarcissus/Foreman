@@ -74,22 +74,34 @@ This is the run that counts: 24 runs, every one with `sandbox_probe.ok = true`,
 
 ## The finding: a ceiling effect
 
-Every model solves every holdout task, first attempt, with no retries. The
-holdout cannot discriminate capability at all. The earlier 6/8 for Haiku was two
-`provider.no-route` failures; with a healthy provider it is 8/8.
+Every model solves every holdout task on every attempt. The earlier 6/8 for
+Haiku was two `provider.no-route` failures; with a healthy provider it is 8/8.
+
+**This shows the screening set did not separate these models on these eight runs
+each. It is not evidence that their capabilities are equal.** Two tasks, four
+attempts per task, one repository: the suite is small enough that a common pass is
+unsurprising, and a harder task could separate them tomorrow.
 
 This is the mirror image of the floor effect the preregistration guarded against,
 and nothing in the design anticipated it. It has three consequences:
 
-1. **Worker selection degenerates to cost and speed.** The preregistered
-   tie-break (largest allowance) still selects DeepSeek V4.1 Flash, and that is
-   what stands — but the rule is now choosing on allowance because capability
-   produced no signal. Haiku is 10x faster (23s vs 249s) and 5x cheaper
-   ($0.0023 vs $0.0104 per run) while matching completion.
-2. **The pilot may saturate too.** If DeepSeek completes all 12 tasks at G0, then
-   completion is 100% at every rung, H1 and H2 are untestable, and the ladder can
-   only be measured on cost, latency and round trips. That is a real risk to the
-   study's primary outcomes and must be checked before 180 runs are spent.
+1. **The selection is incumbency, not a result.** DeepSeek V4.1 Flash is named
+   as the primary worker in `docs/02-preregistration.md` line 59, written before
+   the smoke test existed, and that document is **not frozen**. The tie-break
+   clause lives in `docs/05-run-configuration.md` — an unfrozen design document
+   the preregistration merely points at — and "larger allowance" is one criterion
+   that happens to favour the incumbent. Continuing with DeepSeek is defensible
+   as continuity; presenting it as the rule's inevitable winner would not be.
+   Haiku matched completion at 10x the speed (23s vs 249s) and 5x lower cost
+   ($0.0023 vs $0.0104 per run).
+2. **The pilot may saturate too — which weakens completion, not the study.**
+   If DeepSeek completes all 12 tasks at G0, completion has little headroom to
+   fall. That does not by itself invalidate the guardrail question: stricter gates
+   can still reduce completion, and completion is only one of the outcomes.
+   Gate yield, round trips, human minutes, latency and cost are all still
+   measurable when completion is flat, and H3-H6 do not depend on completion
+   variance. The risk is narrower than it first appeared: a saturated G0 would
+   make H1 and H2 uninformative, not the study.
 3. **The obvious remedy is more difficult tasks, not a different model.** Adding
    difficulty is a task-authoring change; changing the model would not help,
    since all three saturate.
