@@ -152,8 +152,9 @@ def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0,
         # Four of them fill a 7.5GB tmpfs, so they are disposable.
         shutil.rmtree(config_path_home(worktree), ignore_errors=True)
 
+    record["cost_usd"] = action.get("cost_usd")
     ledger_row({k: record[k] for k in (
-        "run_id", "task_id", "tier", "cls", "rung", "worker", "phase", "gate_green",
+        "run_id", "task_id", "tier", "cls", "rung", "worker", "phase", "cost_usd", "gate_green",
         "accepted", "oracle_passed", "completion", "gate_escape", "tamper",
         "oracle_leaked", "seconds")})
     return record
