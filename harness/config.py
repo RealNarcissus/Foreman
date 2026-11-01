@@ -4,6 +4,7 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SUBJECT = pathlib.Path(os.environ.get("FOREMAN_SUBJECT", "/tmp/click_tag"))
+SUBJECT_COMMIT = "8b19813f2bfca99f1018a587a8cf54fc959f2e5d"
 import tempfile
 # Run worktrees live OUTSIDE the project so ../.. cannot reach
 # tasks/, oracle sources, docs or other runs.

@@ -47,3 +47,37 @@ what the gate does.
 M3's primary outcome would shift from *completion* to *gate yield and human cost*,
 with completion reported as bounded. That is a scope note to record in the
 preregistration before the sweep, not a silent substitution.
+
+---
+
+# Result
+
+**12 / 12 completed at G0**, one attempt each, $0.159 total, all probes ok, zero
+infrastructure failures.
+
+| Tier | Completed | Mean run |
+| --- | --- | --- |
+| 1 | 4/4 | 32s |
+| 2 | 4/4 | 191s |
+| 3 | 4/4 | 243s |
+
+This falls in the pre-registered `12/12` row, so the action is the one written
+above: **no change to model, timebox or gates; harden the task set with additional
+tier-3 tasks; keep these twelve as the ceiling control.** One revision maximum.
+
+## What this is and is not
+
+It is **not** evidence that the gates are unnecessary. It is evidence that
+completion has no headroom at G0 on this task set, so a flat completion curve
+across rungs would be uninformative rather than surprising.
+
+Per the note recorded before the run, the sweep's primary outcome shifts to
+**gate yield and human cost**, with completion reported as a bounded quantity.
+That scope change is applied to the preregistration as a scope note, not silently.
+
+## Consequence for task authoring
+
+The revision must add tier-3 tasks whose oracles constrain behaviour click's
+suite does not already pin: multi-file features with an observable contract, not
+single-function additions. If the revised set also saturates, saturation is the
+finding and difficulty is not escalated further.

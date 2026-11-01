@@ -223,6 +223,23 @@ From the pilot's paired transition rates, compute the number of tasks needed to 
 
 ---
 
+### 8.1 Scope note after the saturation diagnostic
+
+The 12 pilot tasks completed 12/12 at G0 on one attempt each (see
+[08-saturation-check.md](08-saturation-check.md)), which was the pre-registered
+trigger for this note.
+
+**Primary outcome shifts to gate yield (RQ3) and human cost (RQ2)**, with
+completion reported as a bounded quantity: with no observed headroom at G0, a flat
+completion curve across rungs is uninformative rather than a finding that the
+gates do nothing. RQ1 and RQ4 remain reported but are downgraded to descriptive.
+
+One task-set revision is permitted (harder tier-3 tasks constraining behaviour
+click's suite does not pin). The twelve saturating tasks are retained as the
+ceiling control. If the revision also saturates, saturation is reported as the
+finding and difficulty is not escalated further. The timebox is not an independent
+variable and will not be tightened.
+
 ## 9. Threats to validity
 
 | Threat | Handling |

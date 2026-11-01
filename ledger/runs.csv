@@ -68,3 +68,15 @@ H2_G0_mimo_v2_6_flash_r0_20261031T204900Z,H2,3,feature,G0,opencode:mimo-v2.6-fla
 H2_G0_mimo_v2_6_flash_r1_20261031T205034Z,H2,3,feature,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,298.71
 H2_G0_mimo_v2_6_flash_r2_20261031T205534Z,H2,3,feature,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,650.68
 H2_G0_mimo_v2_6_flash_r3_20261031T210625Z,H2,3,feature,G0,opencode:mimo-v2.6-flash,True,True,True,True,False,False,False,366.88
+T1-01_G0_deepseek_v4_1_flash_r0_20261101T084117Z,T1-01,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,41.93
+T1-02_G0_deepseek_v4_1_flash_r0_20261101T084200Z,T1-02,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,13.79
+T1-03_G0_deepseek_v4_1_flash_r0_20261101T084214Z,T1-03,1,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,42.4
+T1-04_G0_deepseek_v4_1_flash_r0_20261101T084257Z,T1-04,1,security,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,28.52
+T2-01_G0_deepseek_v4_1_flash_r0_20261101T084326Z,T2-01,2,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,267.25
+T2-02_G0_deepseek_v4_1_flash_r0_20261101T084754Z,T2-02,2,logic,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,425.44
+T2-S1_G0_deepseek_v4_1_flash_r0_20261101T085500Z,T2-S1,2,security,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,42.47
+T2-S2_G0_deepseek_v4_1_flash_r0_20261101T085543Z,T2-S2,2,security,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,29.36
+T3-01_G0_deepseek_v4_1_flash_r0_20261101T085613Z,T3-01,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,132.72
+T3-02_G0_deepseek_v4_1_flash_r0_20261101T085827Z,T3-02,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,333.6
+T3-03_G0_deepseek_v4_1_flash_r0_20261101T090401Z,T3-03,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,310.4
+T3-04_G0_deepseek_v4_1_flash_r0_20261101T090912Z,T3-04,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,193.46

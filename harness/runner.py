@@ -13,6 +13,22 @@ from . import config, gates, leak, oracle, rungs, sandbox, workers
 IGNORE = shutil.ignore_patterns(".git", ".v", "__pycache__", "*.pyc", ".tox", ".venv")
 
 
+def preflight() -> None:
+    """Fail loudly and once, rather than quietly per task.
+
+    The subject checkout lives in /tmp, which is disposable. Losing it produced
+    twelve identical FileNotFoundErrors and a diagnostic that measured nothing.
+    """
+    if not (config.SUBJECT / "src" / "click").exists():
+        raise RuntimeError(
+            f"subject checkout missing at {config.SUBJECT}; "
+            "re-clone pallets/click at tag 8.5.0")
+    head = run_git(config.SUBJECT, "rev-parse", "HEAD").strip()
+    if head and head != config.SUBJECT_COMMIT:
+        raise RuntimeError(
+            f"subject at {head[:12]}, expected {config.SUBJECT_COMMIT[:12]}")
+
+
 def ensure_worker_allowed(worker) -> None:
     """Fail closed. A worker that needs the sandbox must not run without it."""
     if getattr(worker, "requires_sandbox", False) and not sandbox.available():
@@ -62,6 +78,7 @@ def ledger_row(row: dict) -> None:
 
 
 def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0) -> dict:
+    preflight()
     rung = rungs.load(rung_id)
     worker = workers.get(worker_name)
     ensure_worker_allowed(worker)
