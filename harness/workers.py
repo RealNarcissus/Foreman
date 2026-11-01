@@ -7,6 +7,7 @@ import pathlib
 import shutil
 
 from .config import SUBJECT
+from .patching import apply
 
 
 class Worker:
@@ -31,9 +32,9 @@ class Reference(Worker):
             shutil.copyfile(SUBJECT / f, worktree / f)
             return {"action": "restored", "file": f}
         ref = task["reference"]
-        p = worktree / ref["file"]
-        p.write_text(p.read_text() + ref["append"])
-        return {"action": "feature_added", "file": ref["file"]}
+        apply(worktree, ref)
+        files = [e["file"] for e in (ref if isinstance(ref, list) else [ref])]
+        return {"action": "feature_added", "file": ", ".join(sorted(set(files)))}
 
 
 class Null(Worker):

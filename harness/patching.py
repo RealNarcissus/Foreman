@@ -17,6 +17,21 @@ def block(text: str, start: str, nth: int = 0) -> tuple[int, int]:
     return i, len(lines)
 
 
+def apply(root: pathlib.Path, edits) -> None:
+    """Apply one edit spec, or a list of them, to a checkout.
+
+    A feature that spans several files is expressed as a list; every anchor in
+    the list must be found, so a stale reference fails loudly instead of being
+    half-applied.
+    """
+    for spec in edits if isinstance(edits, list) else [edits]:
+        if spec.get("append"):
+            p = root / spec["file"]
+            p.write_text(p.read_text() + spec["append"])
+        else:
+            patch(root, spec)
+
+
 def patch(root: pathlib.Path, spec: dict) -> None:
     """Replace the first `old` inside the `fn` block of `file`."""
     if spec.get("append"):

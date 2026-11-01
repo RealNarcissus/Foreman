@@ -5,7 +5,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 PRISTINE = pathlib.Path("/tmp/click_tag")
 
 
-from harness.patching import block, patch  # noqa: E402,F401
+from harness.patching import apply, block, patch  # noqa: E402,F401
 
 
 def fresh(dst: pathlib.Path) -> pathlib.Path:

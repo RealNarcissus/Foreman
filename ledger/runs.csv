@@ -80,3 +80,6 @@ T3-01_G0_deepseek_v4_1_flash_r0_20261101T085613Z,T3-01,3,feature,G0,opencode:dee
 T3-02_G0_deepseek_v4_1_flash_r0_20261101T085827Z,T3-02,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,333.6
 T3-03_G0_deepseek_v4_1_flash_r0_20261101T090401Z,T3-03,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,310.4
 T3-04_G0_deepseek_v4_1_flash_r0_20261101T090912Z,T3-04,3,feature,G0,opencode:deepseek-v4.1-flash,True,True,True,True,False,False,False,193.46
+R3-01_G0_null_r0_20261101T094319Z,R3-01,3,feature,G0,scripted:null,True,True,False,False,True,False,False,2.04
+R3-01_G0_null_r0_20261101T094336Z,R3-01,3,feature,G0,scripted:null,True,True,False,False,True,False,False,1.99
+R3-01_G0_reference_r0_20261101T094338Z,R3-01,3,feature,G0,scripted:reference,True,True,True,True,False,False,False,1.89

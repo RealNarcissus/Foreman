@@ -6,19 +6,9 @@ import json, sys, pathlib, tempfile
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent / "tasks"))
 
-from tasklib import fresh, patch, run_oracle, run_own_suite
+from tasklib import apply, fresh, patch, run_oracle, run_own_suite
 from tasks import TASKS
 from revision import REVISION
-
-
-def apply_reference(root, reference):
-    """Apply one edit or a list of them; every site must find its anchor."""
-    for edit in reference if isinstance(reference, list) else [reference]:
-        if edit.get("append"):
-            path = root / edit["file"]
-            path.write_text(path.read_text() + edit["append"])
-        else:
-            patch(root, edit)
 
 
 rows = []
@@ -65,7 +55,7 @@ for t in TASKS + REVISION:
             ok = False; notes.append("no reference implementation")
         else:
             try:
-                apply_reference(root, t["reference"])
+                apply(root, t["reference"])
             except Exception as e:
                 ok = False; notes.append(f"reference failed: {e}")
             oracle_ok = run_oracle(root, t["oracle"])
