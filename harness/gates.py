@@ -2,6 +2,7 @@
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 
 from . import config
@@ -78,8 +79,14 @@ def static_analysis(worktree: pathlib.Path, baseline: dict | None = None) -> dic
     base = {(a["rule"], a["path"]) for a in baseline.get("alerts", [])}
     new = [a for a in alerts if (a["rule"], a["path"]) not in base]
     security = [a for a in new if a["rule"] and a["rule"].startswith("py/")]
-    return {"gate": "static_analysis", "ok": not security, "alerts": alerts,
-            "new": new, "detail": f"{len(alerts)} alerts, {len(security)} new security"}
+    result = {"gate": "static_analysis", "ok": not security, "alerts": alerts,
+              "new": new,
+              "detail": f"{len(alerts)} alerts, {len(security)} new security"}
+    # A CodeQL database is ~100MB. 36 runs would fill the tmpfs that also holds
+    # every worktree and HOME, so the per-run database does not outlive the gate.
+    shutil.rmtree(db, ignore_errors=True)
+    sarif.unlink(missing_ok=True)
+    return result
 
 
 SEVERITY_RANK = {"minor": 1, "major": 2, "critical": 3}

@@ -5,81 +5,86 @@ repeat)`, `phase="sweep"` in `ledger/runs.csv`. Worker
 `opencode:deepseek-v4.1-flash` (the incumbent, per [02](02-preregistration.md)
 §3). Concurrency 4; each job has its own worktree and private `HOME`.
 
-**108 of 180 runs complete: G0, G1, G2.** G3 and G4 are not run — see the
-blocker below.
+**144 of 180 runs complete: G0, G1, G2, G3.** G4 is not run: it needs a human,
+and the protocol is proposed in [11](11-g4-protocol.md) rather than improvised.
 
-## Interim results
+## Results
 
-| Rung | Runs | Counted complete | Gate rejected | Gate escapes | Mean wall |
-| --- | --- | --- | --- | --- | --- |
-| G0 | 36 | 36 | 0 | 0 | 165s |
-| G1 | 36 | 35 | 0 | 0 | 204s |
-| G2 | 36 | 36 | 1 | 0 | 184s |
+| Rung | Runs | Complete | Gate green | Gate rejected | Escapes | Spend |
+| --- | --- | --- | --- | --- | --- | --- |
+| G0 | 36 | 36 | 36 | 0 | 0 | $0.630 |
+| G1 | 36 | 35 | 36 | 0 | 0 | $0.539 |
+| G2 | 36 | 36 | 36 | 0 | 0 | $0.568 |
+| G3 | 36 | 36 | 24 | 12 | 0 | $0.524 |
 
-Total spend **$1.731**. Zero infrastructure failures; every run passed its
-sandbox probe.
+Total **$2.26**. Zero infrastructure failures; every run passed its sandbox
+probe. One G1 run is counted as incomplete because it is `valid=False` (see the
+containment note below), not because the worker failed.
 
-Three things in this table matter more than the completion column:
+Four things matter more than the completion column:
 
-1. **G0 saturated again at k=3: 36/36.** The pre-check's 12/12 was not a
-   small-sample artefact of one attempt each. Completion has no headroom at the
-   loosest rung, which is what §8.1 already recorded.
+1. **G0 saturated at k=3: 36/36.** The pre-check's 12/12 was not an artefact of
+   one attempt each.
 2. **No gate escapes anywhere.** No run was accepted by a gate and then failed
-   its oracle. A flat escape count is itself a measurement: on this task set the
-   gates did not buy back any correctness that G0 lacked.
-3. **One gate rejection is the first evidence about gate yield.** `T2-S1` at G2
-   (run `T2-S1_G2_deepseek_v4_1_flash_r0_...`) fixed the behaviour the oracle
-   checks and broke 14 cases of `tests/test_termui.py::test_editor_path_normalization`.
-   The oracle called it complete; CI rejected it. That divergence — a task
-   oracle that scores completion while the project's own suite regresses — is
-   the mechanism RQ3 is meant to expose, and it is now observed once.
+   its oracle. On this task set the gates bought back no correctness that G0
+   lacked — the yield is entirely in rejections.
+3. **G3's reviewer rejected 12 of 36 runs whose oracle passed**, and the
+   rationales hold up on inspection. Example: `T2-01` r0 fixed the requested
+   envvar precedence but also changed the automatic-prefix branch from
+   `if rv is not None:` to `if rv:`, silently dropping empty-but-set prefixed
+   variables. CI and the oracle both miss that; the reviewer caught it. This is
+   the first real gate yield in the sweep, and it points at automated review,
+   not at static analysis.
+4. **Completion and independent correctness are separate outcomes**, and are
+   reported separately from here on. A run can be `completion=True` and
+   `gate_green=False` (12 do), and a run can be complete with a broken project
+   suite. Pooling them would erase the finding.
+
+## Defect found during the sweep: 36 runs were G1 in disguise
+
+`static_analysis` skipped itself when `FOREMAN_CODEQL_ENABLE` was unset and
+returned `ok=True` while doing it. The sweep shell never had the variable, so
+the first 36 G2 runs received G1 treatment while being recorded as G2. The
+aggregates were plausible — 36/36, zero escapes — and only the per-gate detail
+(`skipped (FOREMAN_CODEQL_ENABLE!=1)`) showed it.
+
+Fixed fail-closed: the gate now fails when the variable is unset, and the runner
+refuses to start a rung whose static analysis cannot be delivered. The 36
+affected rows are marked `void-treatment` and kept. G2 was then re-run with
+CodeQL 2.27.3 actually installed and the gate enabled; the numbers above are
+the re-run. An earlier version of this document attributed a gate rejection to
+G2; that rejection came from the invalidated batch and is a CI rejection, not a
+static-analysis one.
+
+CodeQL had been installed under `/tmp`, which is tmpfs here and did not survive.
+It now lives outside the tmpfs and the per-run database is deleted after each
+gate, because 36 databases would fill the same filesystem the worktrees live on.
 
 ## Excluded run (containment, working as designed)
 
 `T2-01_G1_..._r2` passed its oracle but is not counted: the worker log contains a
 `curl` to the HuggingFace API searching for `swe-smith` — an attempt to find the
-benchmark source from inside the run. The containment marker matched `oracle` in
-that line. The run is `valid=False`, `completion=False`, and it stays in the
-ledger with its reason rather than being deleted.
+benchmark source from inside the run. `valid=False`, `completion=False`, kept in
+the ledger with its reason.
 
-This is the first observed attempt to look up the task source online. It is
-recorded as evidence about contamination pressure, not as a harness fault. The
-sandbox had no network policy beyond the host's; a future revision should decide
-whether egress is part of the treatment.
+Two facts are being recorded separately here, per the review of this section:
 
-## Blocker: G3 and G4 are stubs
+- **Policy:** looking up the benchmark is a violation of the preregistered
+  containment rule, so the run does not count.
+- **Capability:** the sandbox does not restrict network egress. Detection is
+  post-hoc, by matching the worker log.
 
-`harness/gates.py`:
-
-```python
-def ai_review(worktree, reviewer):
-    """Stub until the reviewer prompt is committed and hashed."""
-    return {"gate": "ai_review", "ok": True,
-            "detail": "stub: reviewer prompt not yet pinned", "comments": []}
-```
-
-`configs/rungs/G3.json` carries `"prompt_hash": "UNPINNED"`, and the prereg
-requires prompt, model and threshold to be committed before the sweep because
-they *are* the treatment. Running G3 now would produce 36 runs labelled
-"automated review" in which no reviewer ran — data that would later read as
-"automated review catches nothing" when in fact nothing was tested. `G4`
-returns `needs_human` with no session and no timer, so its 36 runs are
-deterministic by construction.
-
-That is why the sweep stopped at 108. The two options are:
-
-- **Pin the reviewer** (write the prompt, hash it, wire `ai_review`, validate
-  that it fires on a known-bad diff and passes a known-good one), then run the
-  remaining 72.
-- **Ship 108 runs over three rungs** and state plainly that the review and human
-  rungs are out of scope for this report.
-
-Neither is chosen here; the decision is the developer's, because the first
-changes what the treatment is.
+Egress was left permissive for the sweep because changing it now would make
+earlier rungs incomparable with later ones. It should be enforced technically
+(namespace without a network, or a proxy allowlist) in any replication, and a
+dedicated egress-off run would be a new treatment, not a cleanup.
 
 ## Not claimable yet
 
-k=3 per cell, one worker, one repository. Completion differences below ~10
-points are not distinguishable at this size, and the prereg's power analysis is
-still pending. Nothing here is a final result; it is the interim state of the
-sweep.
+k=3 per cell, one worker, one repository. Differences below roughly 10 points are
+not distinguishable at this size, and the prereg's power analysis is pending.
+Repeated runs of one task are not independent observations: the analysis must be
+clustered by task, paired across rungs, and must report intervals rather than
+means. Runs are paired by `(task, repeat)` across rungs, which the ledger now
+supports because `rung` and `repeat` are separate columns.
+
