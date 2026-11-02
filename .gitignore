@@ -4,3 +4,18 @@ __pycache__/
 # never commit credentials or local auth state
 .foreman/
 auth-export.json
+
+# generated / local-only artefacts
+*.pyc
+.pytest_cache/
+.DS_Store
+*.bundle
+*.sarif
+*.key
+.env
+
+# machine-specific credentials exports
+*auth-export*.json
+
+# the university write-up is maintained separately and must not be published
+docs/report/

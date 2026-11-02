@@ -61,7 +61,7 @@ was not one.
 `bwrap` is available (0.13.1) and the mount namespace behaves correctly:
 
 ```
-ls /home/charleton/Desktop   ->  No such file or directory
+ls $HOME/Desktop   ->  No such file or directory
 pwd                          ->  /work
 HOME                         ->  /home/agent
 ```
