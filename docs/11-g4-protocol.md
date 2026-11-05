@@ -118,3 +118,18 @@ Two defects were found and fixed while producing the automated half:
 - The provider reported `"cost": 0` for every G4 step while returning token
   counts. G4 cost is therefore **unavailable**, not zero, and is not imputed
   from earlier rungs.
+
+## Who reviewed (deviation from the single-reviewer protocol)
+
+The protocol above assumed one reviewer. Two independent reviewers saw the same
+eight changes instead, concurrently:
+
+- **R1** saw only the console materials and timed 19.6 minutes.
+- **R2** (the project owner) saw the console materials and additionally verified
+  against the actual click repository, timed at 7.7 minutes plus 15 self-reported
+  minutes of concurrent work (22.7 total).
+
+Inter-rater agreement was 4/8 (kappa 0.20), with all disagreements in one
+direction. Two reviewers is better than one for detecting that a single verdict
+is unstable, but it is still not a sample of reviewers, and the two did not have
+symmetric evidence. Recorded in `ledger/human-reviewers.json`.

@@ -118,15 +118,19 @@ def main():
         t2_total = t2 + adj.get(2, 0)
         t1_total = t1 + adj.get(1, 0)
         print(f"- reviewed changes: {len(ids)} (the other 28 G4 runs were blocked by machine gates)")
-        print(f"- intervention rate: pass 1 {a1:.0%}, pass 2 {a2:.0%}")
-        print(f"- agreement: {same}/{len(ids)} = {po:.0%}; Cohen's kappa {kappa:.2f}")
-        print(f"- human minutes, as timed by the console: pass 1 {t1:.1f}, pass 2 {t2:.1f}")
+        print(f"- intervention rate: reviewer 1 {a1:.0%}, reviewer 2 {a2:.0%}")
+        print(f"- inter-rater agreement: {same}/{len(ids)} = {po:.0%}; "
+              f"Cohen's kappa {kappa:.2f}")
+        print(f"- human minutes, as timed by the console: reviewer 1 {t1:.1f}, "
+              f"reviewer 2 {t2:.1f}")
         if adj:
             print(f"- self-reported work outside the timer: {adj}")
-        print(f"- human minutes, adjusted: pass 1 {t1_total:.1f}, pass 2 {t2_total:.1f}")
+        print(f"- human minutes, adjusted: reviewer 1 {t1_total:.1f}, "
+              f"reviewer 2 {t2_total:.1f}")
         print("\nWith 8 cases a single flip moves agreement by 12.5 points. This is a "
-              "consistency check, not a reliability estimate, and both passes must be "
-              "reported because the human-yield figure depends on which one is counted.")
+              "consistency check between two reviewers, not a reliability estimate, "
+              "and both are reported because the human-yield figure depends on who "
+              "counts.")
 
 
 if __name__ == "__main__":

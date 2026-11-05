@@ -25,23 +25,22 @@ gate actually buy?" has a number attached to it.
 
 ## Findings so far
 
-Interim, with the sample sizes stated, and reported separately from one another:
+Reported separately, with sample sizes stated:
 
 1. **GitHub's default CodeQL configuration cannot see a library's inputs.** In
-the pre-check, four planted probes produced zero alerts; the three pre-existing
-alerts are not what the gate implies they are. The extended suite raises recall
-to 2 of 4 without fixing the blind spot. This result is independent of the
-sweep.
-2. **Completion and correctness are different outcomes.** Twelve G3 runs are
-`completion=True, gate_green=False`: the task oracle passed and the review gate
-rejected them for behavioural regressions the oracle does not check.
-3. **Gate yield came from review, not static analysis.** Across 144 runs there
-were zero escapes at every rung; the entire yield is 12 rejections at G3, on
-runs whose oracle passed.
-
-Completion saturated at every rung measured (G0 36/36), so a flat completion
-curve is uninformative rather than a finding that gates do nothing. The
-pre-registration's scope note records that shift before these results existed.
+   the pre-check, four planted probes produced zero alerts; the three
+   pre-existing alerts are not what the gate implies they are. The extended
+   suite raises recall to 2 of 4 without fixing the blind spot. This result is
+   independent of the sweep.
+2. **Completion is at ceiling and does not discriminate.** 180 runs; every rung
+   within one case of 36/36. A flat completion curve is uninformative, not
+   evidence that gates do nothing.
+3. **All yield is rejection, and all of it comes from review.** Zero escapes in
+   180 runs (95% upper bound ≈ 1.7%). The frozen reviewer rejected 12 of 36 at
+   G3 and 30 of 36 at G4; CodeQL contributed zero rejections at G2–G4.
+4. **Two independent reviewers disagreed on half the changes they both saw.**
+   Same 8 changes: 25% versus 75% interventions, 50% agreement, inter-rater
+   kappa 0.20. Human yield is a range that depends on who reviews.
 
 ## The ladder
 

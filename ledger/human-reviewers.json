@@ -1,0 +1,25 @@
+{
+  "design": "two independent reviewers, same 8 changes, same console materials",
+  "reviewers": [
+    {
+      "id": "R1",
+      "pass": 1,
+      "role": "reviewer 1",
+      "conditions": "console materials only (spec, diff, CI, static analysis, reviewer opinion)",
+      "timed_minutes": 19.6,
+      "verdicts": "2/8 interventions"
+    },
+    {
+      "id": "R2",
+      "pass": 2,
+      "role": "reviewer 2 (project owner)",
+      "conditions": "console materials, plus independent verification against the actual click repository while reviewer 1 worked",
+      "timed_minutes": 7.7,
+      "reported_concurrent_minutes": 15.0,
+      "total_minutes": 22.7,
+      "verdicts": "6/8 interventions"
+    }
+  ],
+  "note": "The two reviews were concurrent and independent of each other; they are not two passes by one person. Agreement between them is inter-rater.",
+  "timestamp": "2026-11-05T10:50:22.911042+00:00"
+}

@@ -85,42 +85,41 @@ web services, and these tasks do not add sinks it can see.
 
 ## Human review (G4)
 
-Of 36 G4 runs, 28 were blocked by machine gates before a person saw them. The
-human therefore reviewed **8** changes — a sample conditioned on machine
-approval, which is what a real pipeline produces.
+Of 36 G4 runs, 28 were blocked by machine gates before a person saw them. Two
+reviewers therefore saw the same **8** changes — a sample conditioned on machine
+approval, which is what a real pipeline produces. The reviews were independent
+and concurrent; they were not two passes by one person.
 
-| Pass | Interventions | Timed | Adjusted |
-| --- | --- | --- | --- |
-| 1 | 2/8 (25%) | 19.6 | 19.6 |
-| 2 | 6/8 (75%) | 7.7 | **22.7** |
+| Reviewer | Conditions | Interventions | Timed | Total |
+| --- | --- | --- | --- | --- |
+| R1 | console materials only | 2/8 (25%) | 19.6 | 19.6 |
+| R2 | console materials + independent verification against the real click repo | 6/8 (75%) | 7.7 | **22.7** |
 
-Pass 2's console time is an undercount: the reviewer was recording observations
-and finalising later reviews while the script timed individual items, and
-reported a further **15 minutes** of concurrent work. That is recorded as a
-self-reported adjustment in `ledger/human-adjustments.json`, not smeared into
-the per-item timings. With it, pass 2 was stricter *and* longer (22.7 vs 19.6
-minutes), which is the intuitive direction and the opposite of what the raw
-timer suggested.
+R2's console time is an undercount: 15 minutes of independent verification
+happened while R1 was reviewing, and is recorded as a self-reported adjustment
+in `ledger/human-adjustments.json` rather than smeared across per-item timings.
+`ledger/human-reviewers.json` records who saw what.
 
-Agreement: **4/8 (50%), Cohen's kappa 0.20**. The two passes are not independent:
-the reviewer carried observations from the first pass into the second, which is
-the learning threat the protocol listed. Kappa 0.20 therefore measures
-intra-rater drift with carryover, not test-retest reliability of a naive
-reviewer. Consequences:
+**Inter-rater agreement: 4/8 (50%), Cohen's kappa 0.20.** The four disagreements
+are all in one direction — R1 approved four changes that R2 rejected or edited.
+Consequences:
 
-- The G4 gate result depends on the pass: `gate_green` is 6 under pass 1 and 2
-  under pass 2. Pass 1 is the decision of record; pass 2 is reported because the
-  human-yield figure is a **range of 25–75%**, not a point.
-- At n=8 a single flip moves agreement 12.5 points. This is a consistency check,
-  not a reliability estimate, and no claim about human reviewers in general
-  follows from it. What it does establish is narrower and still useful: a
-  reviewer who sees the same change twice can reach opposite conclusions, so a
-  single human verdict is not a gold label.
-- Two human rejections in pass 1 were substantive: `R3-04` accepted bare integers
-  that the spec says must fail, and one implementation raised `ValueError`
-  instead of `BadParameter` past Python's 4300-digit limit. The oracle checked
-  neither. That is human yield the machines did not get — visible in the record,
-  and swamped in aggregate by the reviewer's 28.
+- The human yield is a **range of 25–75%** depending on who reviews, not a
+  property of the rung. `gate_green` is 6 under R1's verdicts and 2 under R2's.
+  R1 is the decision of record; both are reported.
+- At n=8 a single flip moves agreement 12.5 points. This is a consistency check
+  between two people, not a reliability estimate, and no claim about human
+  reviewers in general follows from it. What it does establish is that a single
+  human verdict is not a gold label.
+- The reviewers were not symmetric: R2 had the task questions on hand and
+  verified against the upstream repository, while R1 saw only what the console
+  showed. That difference in evidence is a plausible explanation for the gap and
+  is not separable from the difference between the people.
+- R2's two rejections of `R3-04` were substantive: bare integers accepted where
+  the spec says they must fail, and a `ValueError` instead of `BadParameter`
+  past Python's 4300-digit limit. The oracle checks neither, so these are real
+  human yield that the machines missed — visible in the record, and swamped in
+  aggregate by the reviewer's 30.
 
 ## What these numbers do not support
 
