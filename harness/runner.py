@@ -75,12 +75,20 @@ def ledger_row(row: dict) -> None:
     with _LEDGER_LOCK:
         path = pathlib.Path(os.environ.get("FOREMAN_LEDGER", config.LEDGER))
         path.parent.mkdir(parents=True, exist_ok=True)
-        new = not path.exists() or path.read_text().splitlines()[0] != ",".join(row)
+        # Follow the schema already on disk. A caller that knows fewer fields
+        # (or more) must not make the file grow a second header: that is how
+        # 36 G4 rows ended up interleaved with header lines.
+        header = None
+        if path.exists() and path.stat().st_size:
+            header = path.read_text().splitlines()[0].split(",")
         with path.open("a", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=list(row))
-            if new:
+            if header is None:
+                w = csv.DictWriter(f, fieldnames=list(row))
                 w.writeheader()
-            w.writerow(row)
+                w.writerow(row)
+            else:
+                w = csv.DictWriter(f, fieldnames=header, extrasaction="ignore")
+                w.writerow({k: row.get(k, "") for k in header})
 
 
 def run(task: dict, rung_id: str, worker_name: str, repeat: int = 0,

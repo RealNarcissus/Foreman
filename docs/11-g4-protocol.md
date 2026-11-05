@@ -90,3 +90,31 @@ gate wearing a human label — the same error as a stub reviewer reporting
 `ok=True`. The 36 G4 runs therefore require an actual person. Either the
 developer runs the console, or a designated reviewer does, and the deviation is
 logged. Until then G4 stays uncollected, and the sweep reports 144 of 180.
+
+## Collection state (2026-11-05)
+
+The 36 automated halves have been produced; the human half has not started.
+
+| | n |
+| --- | --- |
+| G4 runs produced | 36 |
+| Rejected by a machine gate before the human | 28 |
+| Reaching the human gate (awaiting review) | 8 |
+
+The 28 never reach a person, by construction: `gates.run` stops at the first
+failing gate, so only changes that pass CI, static analysis and the reviewer are
+escalated. That is what a real pipeline does, and it means G4's human sample is
+**8, not 36** — a smaller sample than the protocol assumed, and one conditioned
+on machine approval. It must be reported as such; it is not a failure of the
+collection, it is a finding about how much work reaches a human when the machines
+run in front of them.
+
+Two defects were found and fixed while producing the automated half:
+
+- `G4.json` defined no reviewer and did not inherit G3's, so the gate received
+  `None` and refused with `unpinned`. All 36 runs were re-gated on their stored
+  diffs after adding `reviewer_ref: G3` to the rung config; the worker artifacts
+  were not regenerated.
+- The provider reported `"cost": 0` for every G4 step while returning token
+  counts. G4 cost is therefore **unavailable**, not zero, and is not imputed
+  from earlier rungs.
