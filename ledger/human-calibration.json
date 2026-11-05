@@ -1,0 +1,22 @@
+[
+  {
+    "decision": "approve",
+    "seconds": 219.9,
+    "reason_class": null,
+    "rationale": "",
+    "limit_seconds": 600,
+    "kind": "calibration",
+    "calibration": true,
+    "case": "CALIB_good_R3-04"
+  },
+  {
+    "decision": "reject",
+    "seconds": 141.8,
+    "reason_class": "defect",
+    "rationale": "The patch introduces a clear functional and security defect (CWE-78 OS Command Injection) that directly violates the specification by enabling shell=True and concatenating unescaped editor and filenames strings instead of passing a tokenized argument list.",
+    "limit_seconds": 600,
+    "kind": "calibration",
+    "calibration": true,
+    "case": "CALIB_bad_T2-S1"
+  }
+]

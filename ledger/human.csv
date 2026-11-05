@@ -1,0 +1,9 @@
+run_id,decision,seconds,reason_class,intervention,rationale,kind
+R3-01_G4_deepseek_v4_1_flash_r0_20261105T091106Z,approve,118.1,,False,,review
+R3-02_G4_deepseek_v4_1_flash_r0_20261105T091203Z,approve,92.9,,False,,review
+R3-01_G4_deepseek_v4_1_flash_r1_20261105T091132Z,approve,69.7,,False,,review
+R3-01_G4_deepseek_v4_1_flash_r2_20261105T091141Z,approve,75.0,,False,,review
+R3-02_G4_deepseek_v4_1_flash_r2_20261105T091527Z,approve,50.2,,False,,review
+R3-04_G4_deepseek_v4_1_flash_r0_20261105T091848Z,approve,51.4,,False,,review
+R3-04_G4_deepseek_v4_1_flash_r1_20261105T092158Z,reject_and_edit,536.8,defect,True,"The ValueError on digit strings longer than 4300 digits is reproducible and breaks the BadParameter contract. The int passthrough accepts a bare number, which the request says must fail. The missing tests, changelog and docs are process gaps, but they are secondary and wouldn’t have changed the decision on their own.",review
+R3-04_G4_deepseek_v4_1_flash_r2_20261105T092327Z,reject_and_edit,184.4,defect,True,"Integers bypass the “bare number must fail” rule: convert(90) returns 90, as confirmed by testing. The automated review correctly flags this but incorrectly labels it minor while still approving. It violates an explicit requirement. Passing through converted ints may be a valid Click convention, but it is undocumented and unrequested. Remove the branch or explicitly approve, document, and test it.",review

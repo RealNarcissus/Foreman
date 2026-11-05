@@ -26,6 +26,10 @@ HUMAN = ROOT / "ledger" / "human"
 HUMAN_CSV = ROOT / "ledger" / "human.csv"
 CALIB = pathlib.Path(os.environ.get("FOREMAN_CALIB",
                                     ROOT / "ledger" / "human-calibration.json"))
+PASS2_CSV = pathlib.Path(os.environ.get("FOREMAN_HUMAN2_CSV",
+                                        ROOT / "ledger" / "human-pass2.csv"))
+PASS2_DIR = pathlib.Path(os.environ.get("FOREMAN_HUMAN2_DIR",
+                                        ROOT / "ledger" / "human" / "pass2"))
 LIMIT_S = 600
 BY_ID = {t["id"]: t for t in SWEEP}
 
@@ -150,6 +154,43 @@ def record_decision(run_id, d):
     rec_path.write_text(json.dumps(rec, indent=2) + "\n")
 
 
+def replay(forced=None):
+    """Second pass: same changes, same order, no sight of pass 1 decisions.
+
+    Test-retest only. Writes beside the first pass and never touches runs.csv,
+    so the operative outcome stays the first decision.
+    """
+    first = [r for r in csv.DictReader(open(HUMAN_CSV)) if r["kind"] == "review"]
+    if not first:
+        sys.exit("no first-pass decisions yet; nothing to replay")
+    PASS2_DIR.mkdir(parents=True, exist_ok=True)
+    done = {p.stem for p in PASS2_DIR.glob("*.json")}
+    todo = [r["run_id"] for r in first if r["run_id"] not in done]
+    print(f"pass 1: {len(first)} decisions | already replayed: {len(done)} | to replay: {len(todo)}")
+
+    new = not PASS2_CSV.exists()
+    for i, run_id in enumerate(todo, 1):
+        row = next(r for r in _rows() if r["run_id"] == run_id)
+        rec = json.loads((RUNS / run_id / "record.json").read_text())
+        print()
+        print(f"[second pass] this is change {i} of {len(todo)} still to review")
+        d = decide(rec, BY_ID[row["task_id"]]["spec"], i, len(todo),
+                   kind="review-pass2", forced=forced)
+        payload = {"run_id": run_id, **d,
+                   "timestamp": dt.datetime.now(dt.timezone.utc).isoformat()}
+        (PASS2_DIR / f"{run_id}.json").write_text(json.dumps(payload, indent=2) + "\n")
+        with PASS2_CSV.open("a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["run_id","decision","seconds","reason_class",
+                                              "intervention","rationale","kind"])
+            if new:
+                w.writeheader(); new = False
+            w.writerow({"run_id": run_id, "decision": d["decision"], "seconds": d["seconds"],
+                        "reason_class": d["reason_class"] or "",
+                        "intervention": d["decision"] != "approve",
+                        "rationale": d["rationale"], "kind": "review-pass2"})
+        print(f"recorded {d['decision']} in {d['seconds']}s | remaining {len(todo) - i}")
+
+
 def synthetic_record(task_id, kind):
     """Calibration only: build a change and its machine results, no run."""
     import tempfile, shutil, subprocess
@@ -186,6 +227,9 @@ def main(argv):
         print(f"decided: {len(done)}")
         for r in done:
             print(f"  {r['run_id']}  {r['human_minutes']} min  intervention={r['intervention']}")
+        return
+    if cmd == "replay":
+        replay(forced=forced)
         return
     if cmd == "calibrate":
         out = []

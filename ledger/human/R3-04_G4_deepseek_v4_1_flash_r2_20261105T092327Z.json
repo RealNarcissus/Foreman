@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-04_G4_deepseek_v4_1_flash_r2_20261105T092327Z",
+  "decision": "reject_and_edit",
+  "seconds": 184.4,
+  "reason_class": "defect",
+  "rationale": "Integers bypass the \u201cbare number must fail\u201d rule: convert(90) returns 90, as confirmed by testing. The automated review correctly flags this but incorrectly labels it minor while still approving. It violates an explicit requirement. Passing through converted ints may be a valid Click convention, but it is undocumented and unrequested. Remove the branch or explicitly approve, document, and test it.",
+  "limit_seconds": 600,
+  "kind": "review",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:20:19.106921+00:00"
+}

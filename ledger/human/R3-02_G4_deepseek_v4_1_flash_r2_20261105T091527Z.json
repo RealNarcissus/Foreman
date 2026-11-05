@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-02_G4_deepseek_v4_1_flash_r2_20261105T091527Z",
+  "decision": "approve",
+  "seconds": 50.2,
+  "reason_class": null,
+  "rationale": "",
+  "limit_seconds": 600,
+  "kind": "review",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:06:40.493671+00:00"
+}

@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-04_G4_deepseek_v4_1_flash_r1_20261105T092158Z",
+  "decision": "reject_and_edit",
+  "seconds": 536.8,
+  "reason_class": "defect",
+  "rationale": "The ValueError on digit strings longer than 4300 digits is reproducible and breaks the BadParameter contract. The int passthrough accepts a bare number, which the request says must fail. The missing tests, changelog and docs are process gaps, but they are secondary and wouldn\u2019t have changed the decision on their own.",
+  "limit_seconds": 600,
+  "kind": "review",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:17:10.607567+00:00"
+}
