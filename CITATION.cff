@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "Foreman: what guardrails cost, and what they buy, in agentic software delivery"
+message: "If you use this work, please cite it as below."
+type: software
+authors:
+  - family-names: Mishra
+    given-names: Anish
+version: 0.1.0
+date-released: "2026-11-05"
+url: "https://github.com/RealNarcissus/Foreman"
+license: MIT
+keywords:
+  - software engineering
+  - code review
+  - static analysis
+  - coding agents
+  - empirical study

@@ -17,8 +17,8 @@ be silently pooled.
 
 A pre-M3 run is citable only if it appears in an archived record: `smoke.json`
 (M2, 24 runs) or `saturation.json` (12 runs). Runs listed in
-`preprobe-runs.csv`, `smoke-void.json` or `smoke-preprobe.json`, and runs that
-appear in no archive at all, are `void`. The rule is deliberately mechanical, so
+`archive/preprobe-runs.csv`, `archive/smoke-void.json` or
+`archive/smoke-preprobe.json`, and runs that appear in no archive at all, are `void`. The rule is deliberately mechanical, so
 that no row is classified by impression.
 
 Matching was on `(task, seconds)`; the archives carry no run ids. The four
