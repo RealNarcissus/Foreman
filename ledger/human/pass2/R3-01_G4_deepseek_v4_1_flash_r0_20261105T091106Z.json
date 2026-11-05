@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-01_G4_deepseek_v4_1_flash_r0_20261105T091106Z",
+  "decision": "reject",
+  "seconds": 249.9,
+  "reason_class": "defect",
+  "rationale": "Invoking via an alias leaks it into invoked_subcommand, info_name and the usage line instead of the canonical name, so it doesn\u2019t run the command identically.",
+  "limit_seconds": 600,
+  "kind": "review-pass2",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:37:37.238423+00:00"
+}

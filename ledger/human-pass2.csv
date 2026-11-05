@@ -1,0 +1,9 @@
+run_id,decision,seconds,reason_class,intervention,rationale,kind
+R3-01_G4_deepseek_v4_1_flash_r0_20261105T091106Z,reject,249.9,defect,True,"Invoking via an alias leaks it into invoked_subcommand, info_name and the usage line instead of the canonical name, so it doesn’t run the command identically.",review-pass2
+R3-02_G4_deepseek_v4_1_flash_r0_20261105T091203Z,approve,15.5,,False,,review-pass2
+R3-01_G4_deepseek_v4_1_flash_r1_20261105T091132Z,reject_and_edit,41.1,defect,True,"Replace the resolve_command scan over every get_command with a registered-dict lookup, and guard tuple(aliases) against str and None.",review-pass2
+R3-01_G4_deepseek_v4_1_flash_r2_20261105T091141Z,approve,26.9,,False,,review-pass2
+R3-02_G4_deepseek_v4_1_flash_r2_20261105T091527Z,reject_and_edit,19.2,defect,True,"Drop the unrequested to_info_dict change, which fails mypy --strict at core.py:1124, and store tuple(examples) so an empty generator can’t crash help.",review-pass2
+R3-04_G4_deepseek_v4_1_flash_r0_20261105T091848Z,reject,19.9,defect,True,"The int passthrough accepts negative ints (default=-30 exits 0), breaking the explicit negative-must-fail rule, and versionadded:: 8.5.0 is wrong.",review-pass2
+R3-04_G4_deepseek_v4_1_flash_r1_20261105T092158Z,reject_and_edit,71.2,defect,True,"Remove the int passthrough, which accepts bare 90, and guard int() so over-4300-digit strings raise BadParameter, not ValueError. Also change versionadded to 8.6.0, since 8.5.0 is already released.",review-pass2
+R3-04_G4_deepseek_v4_1_flash_r2_20261105T092327Z,reject_and_edit,15.4,defect,True,"Same two fixes as #7, the int passthrough and the huge-digit ValueError. Its versionadded:: 8.6.0 is correct.",review-pass2

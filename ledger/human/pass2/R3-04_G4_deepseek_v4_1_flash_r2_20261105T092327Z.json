@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-04_G4_deepseek_v4_1_flash_r2_20261105T092327Z",
+  "decision": "reject_and_edit",
+  "seconds": 15.4,
+  "reason_class": "defect",
+  "rationale": "Same two fixes as #7, the int passthrough and the huge-digit ValueError. Its versionadded:: 8.6.0 is correct.",
+  "limit_seconds": 600,
+  "kind": "review-pass2",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:41:06.389486+00:00"
+}

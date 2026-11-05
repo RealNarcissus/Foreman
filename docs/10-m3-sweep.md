@@ -5,8 +5,9 @@ repeat)`, `phase="sweep"` in `ledger/runs.csv`. Worker
 `opencode:deepseek-v4.1-flash` (the incumbent, per [02](02-preregistration.md)
 §3). Concurrency 4; each job has its own worktree and private `HOME`.
 
-**144 of 180 runs complete: G0, G1, G2, G3.** G4 is not run: it needs a human,
-and the protocol is proposed in [11](11-g4-protocol.md) rather than improvised.
+**180 of 180 runs complete.** G4's human half was reviewed in two passes; the
+final numbers, including the reliability result, are in
+[12-results.md](12-results.md).
 
 ## Results
 

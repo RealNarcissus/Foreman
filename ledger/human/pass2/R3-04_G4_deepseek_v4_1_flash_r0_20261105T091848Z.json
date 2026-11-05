@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-04_G4_deepseek_v4_1_flash_r0_20261105T091848Z",
+  "decision": "reject",
+  "seconds": 19.9,
+  "reason_class": "defect",
+  "rationale": "The int passthrough accepts negative ints (default=-30 exits 0), breaking the explicit negative-must-fail rule, and versionadded:: 8.5.0 is wrong.",
+  "limit_seconds": 600,
+  "kind": "review-pass2",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:39:39.830623+00:00"
+}

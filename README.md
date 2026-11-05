@@ -10,10 +10,10 @@ The pipeline is not the deliverable. The measurement is.
 
 ## Status
 
-**The sweep is 144 of 180 runs complete.** G0–G3 are collected at k=3; G4 needs
-a human reviewer and has a frozen protocol but no data. Analysis, the power
-analysis and the experience report are pending. No result in this repository is
-final, and the numbers below are interim.
+**The sweep is complete: 180 runs** (5 rungs × 12 tasks × k=3), including a
+human rung with two independent review passes. Results are in
+[docs/12-results.md](docs/12-results.md). Descriptive only: one repository, one
+worker, k=3, and intervals wide by construction.
 
 ## Why
 
@@ -51,7 +51,7 @@ pre-registration's scope note records that shift before these results existed.
 | G1 | project CI | 36 | 35¹ | 36 |
 | G2 | CI + CodeQL (frozen config) | 36 | 36 | 36 |
 | G3 | G2 + frozen automated review | 36 | 36 | 24 |
-| G4 | G3 + human review | — | — | — |
+| G4 | G3 + human review | 36 | 35 | 6 |
 
 ¹ one run excluded by containment: the worker tried to look up the benchmark
 online. The run is kept in the ledger with its reason.

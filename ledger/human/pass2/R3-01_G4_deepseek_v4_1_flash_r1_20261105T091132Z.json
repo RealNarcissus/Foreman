@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-01_G4_deepseek_v4_1_flash_r1_20261105T091132Z",
+  "decision": "reject_and_edit",
+  "seconds": 41.1,
+  "reason_class": "defect",
+  "rationale": "Replace the resolve_command scan over every get_command with a registered-dict lookup, and guard tuple(aliases) against str and None.",
+  "limit_seconds": 600,
+  "kind": "review-pass2",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:38:33.784503+00:00"
+}

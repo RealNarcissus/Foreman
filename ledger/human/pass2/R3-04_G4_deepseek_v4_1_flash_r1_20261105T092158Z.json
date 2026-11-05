@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-04_G4_deepseek_v4_1_flash_r1_20261105T092158Z",
+  "decision": "reject_and_edit",
+  "seconds": 71.2,
+  "reason_class": "defect",
+  "rationale": "Remove the int passthrough, which accepts bare 90, and guard int() so over-4300-digit strings raise BadParameter, not ValueError. Also change versionadded to 8.6.0, since 8.5.0 is already released.",
+  "limit_seconds": 600,
+  "kind": "review-pass2",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:40:51.023987+00:00"
+}

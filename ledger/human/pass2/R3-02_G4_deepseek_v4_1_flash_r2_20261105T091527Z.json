@@ -1,0 +1,11 @@
+{
+  "run_id": "R3-02_G4_deepseek_v4_1_flash_r2_20261105T091527Z",
+  "decision": "reject_and_edit",
+  "seconds": 19.2,
+  "reason_class": "defect",
+  "rationale": "Drop the unrequested to_info_dict change, which fails mypy --strict at core.py:1124, and store tuple(examples) so an empty generator can\u2019t crash help.",
+  "limit_seconds": 600,
+  "kind": "review-pass2",
+  "calibration": false,
+  "timestamp": "2026-11-05T10:39:19.928234+00:00"
+}
