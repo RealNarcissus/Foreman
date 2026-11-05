@@ -1,0 +1,9 @@
+[
+  {
+    "pass": 2,
+    "minutes": 15.0,
+    "reason": "Concurrent review work outside the console timer: the reviewer was recording observations and finalising later reviews while the script timed individual items. Self-reported, not measured.",
+    "reported_by": "reviewer",
+    "timestamp": "2026-11-05T10:46:28.394529+00:00"
+  }
+]

@@ -15,7 +15,9 @@ bootstraps over the 12 tasks; with 12 clusters they are wide by construction.
    at G3 and 30 at G4, against 0 at G0–G2. Static analysis contributed none on
    this task set.
 4. **The human gate is not stable.** The same reviewer, twice, on the same 8
-   changes: 25% then 75% interventions, 50% agreement, kappa 0.20.
+   changes: 25% then 75% interventions, 50% agreement, kappa 0.20 — with
+   carryover between passes, so this bounds single-pass reliability rather than
+   estimating it.
 
 ## By rung
 
@@ -87,21 +89,33 @@ Of 36 G4 runs, 28 were blocked by machine gates before a person saw them. The
 human therefore reviewed **8** changes — a sample conditioned on machine
 approval, which is what a real pipeline produces.
 
-| Pass | Interventions | Minutes |
-| --- | --- | --- |
-| 1 | 2/8 (25%) | 19.6 |
-| 2 | 6/8 (75%) | 7.7 |
+| Pass | Interventions | Timed | Adjusted |
+| --- | --- | --- | --- |
+| 1 | 2/8 (25%) | 19.6 | 19.6 |
+| 2 | 6/8 (75%) | 7.7 | **22.7** |
 
-Agreement: **4/8 (50%), Cohen's kappa 0.20**. Pass 2 was stricter *and* faster —
-the reviewer had seen the material before, which is exactly the learning threat
-the protocol listed. Consequences:
+Pass 2's console time is an undercount: the reviewer was recording observations
+and finalising later reviews while the script timed individual items, and
+reported a further **15 minutes** of concurrent work. That is recorded as a
+self-reported adjustment in `ledger/human-adjustments.json`, not smeared into
+the per-item timings. With it, pass 2 was stricter *and* longer (22.7 vs 19.6
+minutes), which is the intuitive direction and the opposite of what the raw
+timer suggested.
+
+Agreement: **4/8 (50%), Cohen's kappa 0.20**. The two passes are not independent:
+the reviewer carried observations from the first pass into the second, which is
+the learning threat the protocol listed. Kappa 0.20 therefore measures
+intra-rater drift with carryover, not test-retest reliability of a naive
+reviewer. Consequences:
 
 - The G4 gate result depends on the pass: `gate_green` is 6 under pass 1 and 2
   under pass 2. Pass 1 is the decision of record; pass 2 is reported because the
   human-yield figure is a **range of 25–75%**, not a point.
 - At n=8 a single flip moves agreement 12.5 points. This is a consistency check,
   not a reliability estimate, and no claim about human reviewers in general
-  follows from it.
+  follows from it. What it does establish is narrower and still useful: a
+  reviewer who sees the same change twice can reach opposite conclusions, so a
+  single human verdict is not a gold label.
 - Two human rejections in pass 1 were substantive: `R3-04` accepted bare integers
   that the spec says must fail, and one implementation raised `ValueError`
   instead of `BadParameter` past Python's 4300-digit limit. The oracle checked
